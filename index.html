@@ -446,6 +446,15 @@
     a { color: var(--primary); text-decoration: none; font-weight: 600; }
     .auth-footer { margin-top: 10px; font-size: 0.725rem; text-align: center; color: var(--text-muted); font-weight: 500; }
     .spin-icon { animation: spin 0.6s ease-in-out; }
+
+    /* Admin specific styles */
+    .admin-user-card {
+      background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 12px; box-shadow: var(--shadow-sm); margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .admin-user-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 6px;}
+    .admin-user-name { font-size: 0.9rem; font-weight: 800; color: var(--primary); }
+    .admin-user-id { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
+    .admin-action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   </style>
 </head>
 <body>
@@ -470,6 +479,7 @@
       </div>
     </div>
 
+    <!-- MAIN NAVBAR -->
     <div id="navbar-container" class="hidden">
       <nav class="navbar">
         <div class="nav-left-group">
@@ -515,11 +525,22 @@
       </div>
     </div>
 
+    <!-- MAIN APP CONTAINER -->
     <div class="app-container">
+      
+      <!-- AUTHENTICATION -->
       <div id="auth-section">
         <div id="login-box" class="card auth-card">
-          <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 2px;" data-i18n="welcome_back">Welcome Back</h2>
-          <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 10px;" data-i18n="login_subtitle">Sign in with Punching ID or Mobile Number.</p>
+          <div class="profile-header">
+            <div>
+              <h2 id="login-title" style="font-size: 1.15rem; font-weight: 800; margin-bottom: 2px;" data-i18n="welcome_back">Welcome Back</h2>
+              <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" data-i18n="login_subtitle">Sign in with Punching ID or Mobile Number.</p>
+            </div>
+            <!-- Admin Toggle Button -->
+            <button onclick="toggleAdminLoginMode()" id="admin-toggle-btn" class="btn-edit" style="background:#0f172a; padding: 6px 10px;">
+              <i class="fa-solid fa-user-shield"></i> Admin
+            </button>
+          </div>
 
           <div class="form-group"><label data-i18n="lbl_id_mobile">ID or Mobile Number</label><input type="text" id="login-id" placeholder="Enter ID or Mobile" required></div>
           <div class="form-group"><label data-i18n="lbl_password">Password</label><input type="password" id="login-password" placeholder="••••••••" required></div>
@@ -528,7 +549,7 @@
             <span id="btn-login-text" data-i18n="btn_signin">Sign In</span>
             <span id="btn-login-spinner" class="spinner hidden"></span>
           </button>
-          <div class="auth-footer">
+          <div class="auth-footer" id="login-footer">
             <p style="margin-bottom: 4px;"><a href="#" onclick="showCustomAlert('Information', 'Contact Admin to Reset Password!', 'info'); return false;" data-i18n="forgot_password">Forgot Password?</a></p>
             <p><span data-i18n="no_account">Don't have an account?</span> <a href="#" onclick="toggleAuth(false); return false;" data-i18n="register_here">Register Here</a></p>
           </div>
@@ -544,7 +565,7 @@
           <div class="form-group"><label data-i18n="lbl_password">Password</label><input type="password" id="reg-password" placeholder="••••••••" required></div>
           <div class="form-group"><label data-i18n="lbl_refer_code">Referral Code (Optional)</label><input type="text" id="reg-refer" placeholder="REF123"></div>
 
-          <button id="btn-reg" onclick="registerUser()">
+          <button id="btn-reg" onclick="registerUser(false)">
             <span id="btn-reg-text" data-i18n="btn_register">Register Account</span>
             <span id="btn-reg-spinner" class="spinner hidden"></span>
           </button>
@@ -552,6 +573,7 @@
         </div>
       </div>
 
+      <!-- DASHBOARD -->
       <div id="dashboard-section" class="hidden">
         <div class="card">
           <div class="profile-header">
@@ -616,7 +638,6 @@
 
             <div id="attendance-cards-dash" class="attendance-cards-list"></div>
           </div>
-
         </div>
       </div>
 
@@ -650,6 +671,7 @@
         </div>
       </div>
 
+      <!-- HISTORY SECTION -->
       <div id="history-section" class="hidden">
         <div class="card">
           <h2 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 2px;" data-i18n="att_history">Attendance History</h2>
@@ -692,6 +714,81 @@
         </div>
       </div>
 
+    </div> <!-- End Main App Container -->
+
+    <!-- ================== ADMIN PANEL SECTIONS ================== -->
+    
+    <!-- ADMIN DASHBOARD -->
+    <div id="admin-dash-section" class="hidden">
+      <nav class="navbar" style="position: sticky; top: 0; z-index: 1000; background: #0f172a;">
+         <div class="nav-brand" style="color:#ffffff;"><i class="fa-solid fa-user-shield"></i> Admin Dashboard</div>
+         <button onclick="logout()" class="btn-edit" style="background:#ef4444; border:none;">Logout</button>
+      </nav>
+      <div class="app-container">
+         <div class="card" style="background: var(--primary-gradient); color: white;">
+            <h3 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 5px;">Total Users Registered</h3>
+            <p style="font-size: 1.8rem; font-weight: 800;" id="admin-total-users-count">0</p>
+         </div>
+         <button onclick="openAdminAddUser()" style="margin-bottom: 12px; font-weight: 800;"><i class="fa-solid fa-user-plus"></i> Add New User</button>
+         
+         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="font-size: 0.9rem; font-weight: 800;">Manage Users</h3>
+         </div>
+         <div id="admin-users-container" class="attendance-cards-list"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN USER ATTENDANCE VIEW -->
+    <div id="admin-user-att-section" class="hidden">
+      <nav class="navbar" style="position: sticky; top: 0; z-index: 1000;">
+         <div class="nav-brand" style="color: var(--primary); font-size: 0.9rem;"><i class="fa-solid fa-calendar"></i> <span id="admin-att-view-name">User Attendance</span></div>
+         <button onclick="switchAdminView('admin-dash')" class="btn-edit"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      </nav>
+      <div class="app-container">
+         <div class="card">
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label>Select Month</label>
+              <input type="month" id="admin-filter-month" onchange="loadAdminUserAttendance()">
+            </div>
+            <button onclick="openAttendanceModal()" style="margin-bottom: 12px; font-weight: 800;"><i class="fa-solid fa-calendar-plus"></i> Add Attendance</button>
+            
+            <div id="admin-user-att-list" class="attendance-cards-list"></div>
+         </div>
+      </div>
+    </div>
+
+    <!-- ================== MODALS ================== -->
+
+    <!-- ADMIN EDIT AUTH MODAL (Mobile/Password) -->
+    <div id="admin-edit-auth-modal" class="modal-overlay">
+      <div class="custom-modal" style="text-align: left;">
+        <h3 class="modal-title" style="margin-bottom: 12px;"><i class="fa-solid fa-lock"></i> Edit User Credentials</h3>
+        
+        <div class="form-group">
+          <label>Mobile Number <span class="req">*</span></label>
+          <input type="text" id="admin-auth-mobile" placeholder="Mobile Number" required>
+        </div>
+        <div class="form-group">
+          <label>New Password <span class="req">*</span></label>
+          <input type="text" id="admin-auth-password" placeholder="New Password" required>
+        </div>
+        <div class="modal-actions" style="margin-top: 15px;">
+          <button class="btn-secondary" style="flex:1;" onclick="closeAdminEditAuth()">Cancel</button>
+          <button style="flex:1;" onclick="saveAdminAuthEdit()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN VIEW REFERRALS MODAL -->
+    <div id="admin-referral-modal" class="modal-overlay">
+      <div class="custom-modal" style="text-align: left; max-height: 80vh; overflow-y: auto;">
+        <h3 class="modal-title" style="margin-bottom: 4px;"><i class="fa-solid fa-users"></i> Referrals</h3>
+        <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 12px;">Users referred by <span id="admin-ref-user-name"></span></p>
+        
+        <div id="admin-ref-list-container" class="attendance-cards-list" style="margin-bottom: 12px;"></div>
+
+        <button class="btn-secondary" style="width: 100%; font-weight: 800;" onclick="closeAdminReferrals()">Close</button>
+      </div>
     </div>
 
     <!-- LANGUAGE SETTINGS MODAL -->
@@ -804,7 +901,7 @@
         
         <div class="form-group" id="group-att-date">
           <label data-i18n="select_date">Select Date</label>
-          <input type="date" id="att-date" onchange="onAttendanceDateChange()">
+          <input type="date" id="att-date">
         </div>
 
         <div class="form-group" id="group-att-status">
@@ -862,164 +959,32 @@
     // --- MULTILINGUAL TRANSLATIONS DICTIONARY ---
     const translations = {
       en: {
-        pwa_title: "Attendance Pro",
-        pwa_desc: "Install App for fast access",
-        install: "Install",
-        nav_dashboard: "Dashboard",
-        nav_referral: "Referral Program",
-        nav_history: "Attendance History",
-        nav_add_att: "Add Attendance",
-        nav_profile: "Profile Settings",
-        nav_language: "Language / भाषा",
-        nav_support: "Customer Support",
-        nav_refresh: "Refresh",
-        nav_install: "Install App",
-        nav_share: "Share App",
-        nav_logout: "Logout",
-        welcome_back: "Welcome Back",
-        login_subtitle: "Sign in with Punching ID or Mobile Number.",
-        lbl_id_mobile: "ID or Mobile Number",
-        lbl_password: "Password",
-        btn_signin: "Sign In",
-        forgot_password: "Forgot Password?",
-        no_account: "Don't have an account?",
-        register_here: "Register Here",
-        create_account: "Create Account",
-        reg_subtitle: "Fill in details to register.",
-        lbl_punch_id_opt: "Punching ID (Optional)",
-        lbl_fullname: "Full Name",
-        lbl_mobile: "Mobile Number",
-        lbl_refer_code: "Referral Code (Optional)",
-        btn_register: "Register Account",
-        have_account: "Already have an account?",
-        login_here: "Login Here",
-        est_salary: "Est. Monthly Salary:",
-        stat_present: "Present",
-        stat_ot: "Over Time",
-        stat_night: "Night Duty",
-        stat_absent: "Absent",
-        quick_action: "Quick Attendance Action",
-        btn_add_attendance: "Add Attendance",
-        recent_history: "Recent History",
-        export_pdf: "Export PDF",
-        ref_program: "Referral Program",
-        ref_subtitle: "Invite friends & earn ₹5 per referral!",
-        reward_balance: "Reward Balance",
-        withdraw: "Withdraw",
-        share_referral: "Share Referral Link",
-        referred_list: "Referred Users List",
-        att_history: "Attendance History",
-        hist_subtitle: "Select month to review records.",
-        select_month: "Select Month",
-        month_salary: "Month Salary:",
-        lang_modal_title: "Select Language / भाषा चुनें",
-        lang_modal_sub: "Choose your preferred language for the app.",
-        close: "Close",
-        prof_modal_title: "Update Profile Settings",
-        prof_mandatory: "* All fields are mandatory to proceed.",
-        lbl_company: "Company Name",
-        lbl_monthly_salary: "8 Hrs Basic Monthly Salary (₹)",
-        lbl_ot_rate: "Overtime Rate Per Hour (₹)",
-        lbl_night_rate: "Night Shift Extra Allowance (₹)",
-        cancel: "Cancel",
-        save_profile: "Save Profile",
-        att_recorded: "Attendance Recorded!",
-        date: "Date",
-        status: "Status",
-        shift_type: "Shift Type",
-        overtime: "Overtime (OT)",
-        remark: "Remark",
-        add_attendance: "Add Attendance",
-        select_date: "Select Date",
-        status_present: "Present",
-        status_absent: "Absent",
-        status_leave: "Leave",
-        overtime_hrs: "Overtime (Hours)",
-        select_shift: "Select Shift",
-        shift_day: "Day Shift",
-        shift_night: "Night Shift",
-        remark_note: "Remark / Note",
-        save: "Save"
+        pwa_title: "Attendance Pro", pwa_desc: "Install App for fast access", install: "Install", nav_dashboard: "Dashboard", nav_referral: "Referral Program",
+        nav_history: "Attendance History", nav_add_att: "Add Attendance", nav_profile: "Profile Settings", nav_language: "Language / भाषा",
+        nav_support: "Customer Support", nav_refresh: "Refresh", nav_install: "Install App", nav_share: "Share App", nav_logout: "Logout", welcome_back: "Welcome Back",
+        login_subtitle: "Sign in with Punching ID or Mobile Number.", lbl_id_mobile: "ID or Mobile Number", lbl_password: "Password", btn_signin: "Sign In",
+        forgot_password: "Forgot Password?", no_account: "Don't have an account?", register_here: "Register Here", create_account: "Create Account", reg_subtitle: "Fill in details to register.",
+        lbl_punch_id_opt: "Punching ID (Optional)", lbl_fullname: "Full Name", lbl_mobile: "Mobile Number", lbl_refer_code: "Referral Code (Optional)", btn_register: "Register Account",
+        have_account: "Already have an account?", login_here: "Login Here", est_salary: "Est. Monthly Salary:", stat_present: "Present", stat_ot: "Over Time", stat_night: "Night Duty", stat_absent: "Absent",
+        quick_action: "Quick Attendance Action", btn_add_attendance: "Add Attendance", recent_history: "Recent History", export_pdf: "Export PDF", ref_program: "Referral Program",
+        ref_subtitle: "Invite friends & earn ₹5 per referral!", reward_balance: "Reward Balance", withdraw: "Withdraw", share_referral: "Share Referral Link", referred_list: "Referred Users List",
+        att_history: "Attendance History", hist_subtitle: "Select month to review records.", select_month: "Select Month", month_salary: "Month Salary:", lang_modal_title: "Select Language / भाषा चुनें",
+        lang_modal_sub: "Choose your preferred language for the app.", close: "Close", prof_modal_title: "Update Profile Settings", prof_mandatory: "* All fields are mandatory to proceed.", lbl_company: "Company Name",
+        lbl_monthly_salary: "8 Hrs Basic Monthly Salary (₹)", lbl_ot_rate: "Overtime Rate Per Hour (₹)", lbl_night_rate: "Night Shift Extra Allowance (₹)", cancel: "Cancel", save_profile: "Save Profile", att_recorded: "Attendance Recorded!",
+        date: "Date", status: "Status", shift_type: "Shift Type", overtime: "Overtime (OT)", remark: "Remark", add_attendance: "Add Attendance", select_date: "Select Date", status_present: "Present", status_absent: "Absent",
+        status_leave: "Leave", overtime_hrs: "Overtime (Hours)", select_shift: "Select Shift", shift_day: "Day Shift", shift_night: "Night Shift", remark_note: "Remark / Note", save: "Save"
       },
       hi: {
-        pwa_title: "Attendance Pro",
-        pwa_desc: "तय समय पर पंचिंग के लिए ऐप इनस्टॉल करें",
-        install: "इनस्टॉल",
-        nav_dashboard: "डैशबोर्ड (Dashboard)",
-        nav_referral: "रेफरल प्रोग्राम (Referral)",
-        nav_history: "उपस्थिति इतिहास (History)",
-        nav_add_att: "उपस्थिति जोड़ें (Add Attendance)",
-        nav_profile: "प्रोफाइल सेटिंग (Profile)",
-        nav_language: "भाषा / Language",
-        nav_support: "ग्राहक सहायता (Support)",
-        nav_refresh: "रिफ्रेश (Refresh)",
-        nav_install: "ऐप इनस्टॉल करें",
-        nav_share: "ऐप शेयर करें",
-        nav_logout: "लॉग आउट",
-        welcome_back: "पुनः स्वागत है",
-        login_subtitle: "पंचिंग आईडी या मोबाइल नंबर से लॉगिन करें।",
-        lbl_id_mobile: "आईडी या मोबाइल नंबर",
-        lbl_password: "पासवर्ड",
-        btn_signin: "लॉगिन करें",
-        forgot_password: "पासवर्ड भूल गए?",
-        no_account: "खाता नहीं है?",
-        register_here: "यहाँ रजिस्टर करें",
-        create_account: "नया खाता बनाएं",
-        reg_subtitle: "पंजीकरण के लिए विवरण भरें।",
-        lbl_punch_id_opt: "पंचिंग आईडी (वैकल्पिक)",
-        lbl_fullname: "पूरा नाम",
-        lbl_mobile: "मोबाइल नंबर",
-        lbl_refer_code: "रेफरल कोड (वैकल्पिक)",
-        btn_register: "खाता रजिस्टर करें",
-        have_account: "पहले से खाता है?",
-        login_here: "लॉगिन करें",
-        est_salary: "अनुमानित मासिक वेतन:",
-        stat_present: "उपस्थित",
-        stat_ot: "ओवरटाइम",
-        stat_night: "नाइट ड्यूटी",
-        stat_absent: "अनुपस्थित",
-        quick_action: "त्वरित उपस्थिति कार्यवाही",
-        btn_add_attendance: "उपस्थिति दर्ज करें",
-        recent_history: "हाल का इतिहास",
-        export_pdf: "पीडीएफ डाउनलोड",
-        ref_program: "रेफरल प्रोग्राम",
-        ref_subtitle: "दोस्तों को आमंत्रित करें और प्रत्येक रेफरल पर ₹5 कमाएं!",
-        reward_balance: "इनाम राशि (Reward)",
-        withdraw: "निकासी",
-        share_referral: "रेफरल लिंक शेयर करें",
-        referred_list: "रेफर किए गए उपयोगकर्ताओं की सूची",
-        att_history: "उपस्थिति इतिहास",
-        hist_subtitle: "रिकॉर्ड देखने के लिए महीना चुनें।",
-        select_month: "महीना चुनें",
-        month_salary: "मासिक वेतन:",
-        lang_modal_title: "भाषा चुनें / Select Language",
-        lang_modal_sub: "ऐप के लिए अपनी पसंदीदा भाषा चुनें।",
-        close: "बंद करें",
-        prof_modal_title: "प्रोफाइल सेटिंग अपडेट करें",
-        prof_mandatory: "* आगे बढ़ने के लिए सभी फ़ील्ड अनिवार्य हैं।",
-        lbl_company: "कंपनी का नाम",
-        lbl_monthly_salary: "8 घंटे का मूल मासिक वेतन (₹)",
-        lbl_ot_rate: "प्रति घंटे ओवरटाइम दर (₹)",
-        lbl_night_rate: "नाइट शिफ्ट अतिरिक्त भत्ता (₹)",
-        cancel: "रद्द करें",
-        save_profile: "प्रोफाइल सेव करें",
-        att_recorded: "उपस्थिति दर्ज हो गई!",
-        date: "दिनांक",
-        status: "स्थिति",
-        shift_type: "शिफ्ट का प्रकार",
-        overtime: "ओवरटाइम (OT)",
-        remark: "टिप्पणी",
-        add_attendance: "उपस्थिति जोड़ें",
-        select_date: "दिनांक चुनें",
-        status_present: "उपस्थित",
-        status_absent: "अनुपस्थित",
-        status_leave: "अवकाश (Leave)",
-        overtime_hrs: "ओवरटाइम (घंटे)",
-        select_shift: "शिफ्ट चुनें",
-        shift_day: "दिन की शिफ्ट (Day)",
-        shift_night: "रात की शिफ्ट (Night)",
-        remark_note: "टिप्पणी / नोट",
-        save: "सुरक्षित करें"
+        pwa_title: "Attendance Pro", pwa_desc: "तय समय पर पंचिंग के लिए ऐप इनस्टॉल करें", install: "इनस्टॉल", nav_dashboard: "डैशबोर्ड (Dashboard)", nav_referral: "रेफरल प्रोग्राम (Referral)",
+        nav_history: "उपस्थिति इतिहास (History)", nav_add_att: "उपस्थिति जोड़ें (Add Attendance)", nav_profile: "प्रोफाइल सेटिंग (Profile)", nav_language: "भाषा / Language", nav_support: "ग्राहक सहायता (Support)", nav_refresh: "रिफ्रेश (Refresh)",
+        nav_install: "ऐप इनस्टॉल करें", nav_share: "ऐप शेयर करें", nav_logout: "लॉग आउट", welcome_back: "पुनः स्वागत है", login_subtitle: "पंचिंग आईडी या मोबाइल नंबर से लॉगिन करें।", lbl_id_mobile: "आईडी या मोबाइल नंबर", lbl_password: "पासवर्ड", btn_signin: "लॉगिन करें",
+        forgot_password: "पासवर्ड भूल गए?", no_account: "खाता नहीं है?", register_here: "यहाँ रजिस्टर करें", create_account: "नया खाता बनाएं", reg_subtitle: "पंजीकरण के लिए विवरण भरें।", lbl_punch_id_opt: "पंचिंग आईडी (वैकल्पिक)", lbl_fullname: "पूरा नाम", lbl_mobile: "मोबाइल नंबर",
+        lbl_refer_code: "रेफरल कोड (वैकल्पिक)", btn_register: "खाता रजिस्टर करें", have_account: "पहले से खाता है?", login_here: "लॉगिन करें", est_salary: "अनुमानित मासिक वेतन:", stat_present: "उपस्थित", stat_ot: "ओवरटाइम", stat_night: "नाइट ड्यूटी", stat_absent: "अनुपस्थित",
+        quick_action: "त्वरित उपस्थिति कार्यवाही", btn_add_attendance: "उपस्थिति दर्ज करें", recent_history: "हाल का इतिहास", export_pdf: "पीडीएफ डाउनलोड", ref_program: "रेफरल प्रोग्राम", ref_subtitle: "दोस्तों को आमंत्रित करें और प्रत्येक रेफरल पर ₹5 कमाएं!", reward_balance: "इनाम राशि (Reward)",
+        withdraw: "निकासी", share_referral: "रेफरल लिंक शेयर करें", referred_list: "रेफर किए गए उपयोगकर्ताओं की सूची", att_history: "उपस्थिति इतिहास", hist_subtitle: "रिकॉर्ड देखने के लिए महीना चुनें।", select_month: "महीना चुनें", month_salary: "मासिक वेतन:", lang_modal_title: "भाषा चुनें / Select Language",
+        lang_modal_sub: "ऐप के लिए अपनी पसंदीदा भाषा चुनें।", close: "बंद करें", prof_modal_title: "प्रोफाइल सेटिंग अपडेट करें", prof_mandatory: "* आगे बढ़ने के लिए सभी फ़ील्ड अनिवार्य हैं।", lbl_company: "कंपनी का नाम", lbl_monthly_salary: "8 घंटे का मूल मासिक वेतन (₹)", lbl_ot_rate: "प्रति घंटे ओवरटाइम दर (₹)",
+        lbl_night_rate: "नाइट शिफ्ट अतिरिक्त भत्ता (₹)", cancel: "रद्द करें", save_profile: "प्रोफाइल सेव करें", att_recorded: "उपस्थिति दर्ज हो गई!", date: "दिनांक", status: "स्थिति", shift_type: "शिफ्ट का प्रकार", overtime: "ओवरटाइम (OT)", remark: "टिप्पणी", add_attendance: "उपस्थिति जोड़ें",
+        select_date: "दिनांक चुनें", status_present: "उपस्थित", status_absent: "अनुपस्थित", status_leave: "अवकाश (Leave)", overtime_hrs: "ओवरटाइम (घंटे)", select_shift: "शिफ्ट चुनें", shift_day: "दिन की शिफ्ट (Day)", shift_night: "रात की शिफ्ट (Night)", remark_note: "टिप्पणी / नोट", save: "सुरक्षित करें"
       }
     };
 
@@ -1045,294 +1010,131 @@
       const btnHi = document.getElementById('lang-btn-hi');
       if (btnEn && btnHi) {
         if (currentLang === 'hi') {
-          btnHi.style.borderColor = '#10b981';
-          btnHi.style.background = '#f0fdf4';
-          btnHi.querySelector('i').className = 'fa-solid fa-circle-check';
-          btnHi.querySelector('i').style.color = '#10b981';
-
-          btnEn.style.borderColor = 'var(--border)';
-          btnEn.style.background = '#f8fafc';
-          btnEn.querySelector('i').className = 'fa-solid fa-circle';
-          btnEn.querySelector('i').style.color = '#cbd5e1';
+          btnHi.style.borderColor = '#10b981'; btnHi.style.background = '#f0fdf4';
+          btnHi.querySelector('i').className = 'fa-solid fa-circle-check'; btnHi.querySelector('i').style.color = '#10b981';
+          btnEn.style.borderColor = 'var(--border)'; btnEn.style.background = '#f8fafc';
+          btnEn.querySelector('i').className = 'fa-solid fa-circle'; btnEn.querySelector('i').style.color = '#cbd5e1';
         } else {
-          btnEn.style.borderColor = '#10b981';
-          btnEn.style.background = '#f0fdf4';
-          btnEn.querySelector('i').className = 'fa-solid fa-circle-check';
-          btnEn.querySelector('i').style.color = '#10b981';
-
-          btnHi.style.borderColor = 'var(--border)';
-          btnHi.style.background = '#f8fafc';
-          btnHi.querySelector('i').className = 'fa-solid fa-circle';
-          btnHi.querySelector('i').style.color = '#cbd5e1';
+          btnEn.style.borderColor = '#10b981'; btnEn.style.background = '#f0fdf4';
+          btnEn.querySelector('i').className = 'fa-solid fa-circle-check'; btnEn.querySelector('i').style.color = '#10b981';
+          btnHi.style.borderColor = 'var(--border)'; btnHi.style.background = '#f8fafc';
+          btnHi.querySelector('i').className = 'fa-solid fa-circle'; btnHi.querySelector('i').style.color = '#cbd5e1';
         }
       }
     }
 
-    function openLanguageModal() {
-      toggleDrawer(false);
-      applyTranslations();
-      document.getElementById('language-settings-modal').classList.add('active');
-    }
-
-    function closeLanguageModal() {
-      document.getElementById('language-settings-modal').classList.remove('active');
-    }
+    function openLanguageModal() { toggleDrawer(false); applyTranslations(); document.getElementById('language-settings-modal').classList.add('active'); }
+    function closeLanguageModal() { document.getElementById('language-settings-modal').classList.remove('active'); }
 
     function openCustomerSupport() {
       const email = "ranjankspp888@gmail.com";
       const subject = "Attendance Pro - Support Request";
-
       const userName = currentUser ? (currentUser.name || "Not Provided") : "Not Provided";
       const userPid = currentUser ? (currentUser.punching_id || "Not Provided") : "Not Provided";
       const userMobile = currentUser ? (currentUser.mobile || "Not Provided") : "Not Provided";
-
       const body = `Hello Support Team,\n\nI need assistance with my Attendance Pro account.\n\n--- User Details ---\nName: ${userName}\nPunching ID: ${userPid}\nMobile Number: ${userMobile}\n\n--- Message ---\n[Type your issue or query here]`;
-
-      const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoUrl;
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
 
     function getKolkataYMD(dateObj = new Date()) {
       const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
-      const formatter = new Intl.DateTimeFormat('en-CA', options);
-      return formatter.format(dateObj);
+      return new Intl.DateTimeFormat('en-CA', options).format(dateObj);
     }
 
     function formatDateDDMMYYYY(dateStr) {
       if (!dateStr) return '-';
       const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-      }
-      return dateStr;
+      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateStr;
     }
 
     function startLiveClock() {
       setInterval(() => {
         const now = new Date();
-        const dateParts = new Intl.DateTimeFormat('en-GB', {
-          timeZone: 'Asia/Kolkata',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }).format(now);
-
-        const formattedDate = dateParts.replace(/\//g, '-');
+        const dateParts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', day: '2-digit', month: '2-digit', year: 'numeric' }).format(now);
         const dayName = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', weekday: 'long' }).format(now);
-
-        const timeStr = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'Asia/Kolkata',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true
-        }).format(now);
-
+        const timeStr = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
         const clockElem = document.getElementById('live-datetime-display');
-        if (clockElem) {
-          clockElem.innerText = `${dayName}, ${formattedDate} | ${timeStr}`;
-        }
+        if (clockElem) clockElem.innerText = `${dayName}, ${dateParts.replace(/\//g, '-')} | ${timeStr}`;
       }, 1000);
     }
     startLiveClock();
 
-    function isProfileIncomplete() {
-      if (!currentUser) return true;
-      const name = currentUser.name ? String(currentUser.name).trim() : '';
-      const company = currentUser.company_name ? String(currentUser.company_name).trim() : '';
-      const salary = parseFloat(currentUser.monthly_salary || currentUser.salary || 0);
-      const ot = parseFloat(currentUser.ot_rate_per_hour || currentUser.ot_rate || 0);
-      const nightRate = parseFloat(currentUser.night_rate || 0);
-
-      return (!name || !company || isNaN(salary) || salary <= 0 || isNaN(ot) || ot < 0 || isNaN(nightRate) || nightRate < 0);
-    }
-
     function showPunchSuccessModal(dateStr, status, otHrs, isNight, remarkText = '') {
-      const formattedDate = formatDateDDMMYYYY(dateStr);
-      
-      document.getElementById('ps-date-day').innerText = `${formattedDate}`;
+      document.getElementById('ps-date-day').innerText = formatDateDDMMYYYY(dateStr);
       document.getElementById('ps-status').innerText = status;
-      
-      const otRow = document.getElementById('ps-ot-row');
-      const shiftRow = document.getElementById('ps-shift-row');
-      const remarkRow = document.getElementById('ps-remark-row');
+      const otRow = document.getElementById('ps-ot-row'), shiftRow = document.getElementById('ps-shift-row'), remarkRow = document.getElementById('ps-remark-row');
 
-      if (status !== 'Present' && remarkText && remarkText.trim() !== '') {
-        remarkRow.style.display = 'flex';
-        document.getElementById('ps-remark').innerText = remarkText;
-      } else {
-        remarkRow.style.display = 'none';
-      }
+      if (status !== 'Present' && remarkText && remarkText.trim() !== '') { remarkRow.style.display = 'flex'; document.getElementById('ps-remark').innerText = remarkText; } 
+      else { remarkRow.style.display = 'none'; }
 
       if (status === 'Absent') {
-        otRow.style.display = 'none';
-        shiftRow.style.display = 'none';
+        otRow.style.display = 'none'; shiftRow.style.display = 'none';
         document.getElementById('punch-success-title').innerText = currentLang === 'hi' ? 'अनुपस्थित दर्ज हुई!' : 'Absent Recorded!';
       } else if (status === 'Leave') {
-        otRow.style.display = 'flex';
-        shiftRow.style.display = 'none';
+        otRow.style.display = 'flex'; shiftRow.style.display = 'none';
         document.getElementById('ps-ot').innerHTML = `<b>${otHrs || 0} hrs</b>`;
         document.getElementById('punch-success-title').innerText = currentLang === 'hi' ? 'अवकाश दर्ज हुआ!' : 'Leave Recorded!';
       } else {
-        otRow.style.display = 'flex';
-        shiftRow.style.display = 'flex';
+        otRow.style.display = 'flex'; shiftRow.style.display = 'flex';
         document.getElementById('ps-ot').innerHTML = `<b>${otHrs || 0} hrs</b>`;
         document.getElementById('punch-success-title').innerText = currentLang === 'hi' ? 'उपस्थिति दर्ज हो गई!' : 'Attendance Recorded!';
-        
-        if (isNight) {
-          document.getElementById('ps-shift').innerHTML = `<span style="color: #7e22ce; font-weight: 800;"><i class="fa-solid fa-moon"></i> ${currentLang === 'hi' ? 'नाइट शिफ्ट' : 'Night Shift'}</span>`;
-        } else {
-          document.getElementById('ps-shift').innerHTML = `<span style="color: #1d4ed8; font-weight: 800;"><i class="fa-solid fa-sun"></i> ${currentLang === 'hi' ? 'डे शिफ्ट' : 'Day Shift'}</span>`;
-        }
+        document.getElementById('ps-shift').innerHTML = isNight ? `<span style="color: #7e22ce; font-weight: 800;"><i class="fa-solid fa-moon"></i> ${currentLang === 'hi' ? 'नाइट शिफ्ट' : 'Night Shift'}</span>` : `<span style="color: #1d4ed8; font-weight: 800;"><i class="fa-solid fa-sun"></i> ${currentLang === 'hi' ? 'डे शिफ्ट' : 'Day Shift'}</span>`;
       }
-
       document.getElementById('punch-success-modal').classList.add('active');
     }
 
-    function closePunchSuccessModal() {
-      document.getElementById('punch-success-modal').classList.remove('active');
-    }
+    function closePunchSuccessModal() { document.getElementById('punch-success-modal').classList.remove('active'); }
 
-    const manifest = {
-      name: "Attendance Pro",
-      short_name: "AttendancePro",
-      start_url: ".",
-      display: "standalone",
-      background_color: "#ffffff",
-      theme_color: "#10b981",
-      icons: [
-        { src: "https://cdn-icons-png.flaticon.com/512/3652/3652191.png", sizes: "192x192", type: "image/png" },
-        { src: "https://cdn-icons-png.flaticon.com/512/3652/3652191.png", sizes: "512x512", type: "image/png" }
-      ]
-    };
-    const stringManifest = JSON.stringify(manifest);
-    const blob = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
-
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', (e) => self.skipWaiting());
-        self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));
-      `;
-      const swBlob = new Blob([swCode], {type: 'text/javascript'});
-      const swUrl = URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swUrl).catch(()=>{});
-    }
-
+    // --- PWA SETUP ---
+    const manifest = { name: "Attendance Pro", short_name: "AttendancePro", start_url: ".", display: "standalone", background_color: "#ffffff", theme_color: "#10b981", icons: [ { src: "https://cdn-icons-png.flaticon.com/512/3652/3652191.png", sizes: "192x192", type: "image/png" }, { src: "https://cdn-icons-png.flaticon.com/512/3652/3652191.png", sizes: "512x512", type: "image/png" } ] };
+    document.getElementById('manifest-placeholder').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'})));
+    if ('serviceWorker' in navigator) { const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`; navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'text/javascript'}))).catch(()=>{}); }
+    
     let deferredPrompt;
+    const isPWAInstalled = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isIosDevice = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 
-    const isPWAInstalled = () => {
-      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    };
-
-    const isIosDevice = () => {
-      return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    };
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      if (!isPWAInstalled()) {
-        setTimeout(() => {
-          document.getElementById('pwa-install-banner').classList.add('show');
-          document.getElementById('drawer-install-item').classList.remove('hidden');
-        }, 1000);
-      }
-    });
-
-    window.addEventListener('load', () => {
-      if (!isPWAInstalled()) {
-        document.getElementById('drawer-install-item').classList.remove('hidden');
-        if (isIosDevice()) {
-          setTimeout(() => {
-            document.getElementById('pwa-install-banner').classList.add('show');
-          }, 1500);
-        }
-      }
-    });
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if (!isPWAInstalled()) { setTimeout(() => { document.getElementById('pwa-install-banner').classList.add('show'); document.getElementById('drawer-install-item').classList.remove('hidden'); }, 1000); }});
+    window.addEventListener('load', () => { if (!isPWAInstalled()) { document.getElementById('drawer-install-item').classList.remove('hidden'); if (isIosDevice()) { setTimeout(() => { document.getElementById('pwa-install-banner').classList.add('show'); }, 1500); } } });
 
     function installPWA() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            dismissPWA();
-            document.getElementById('drawer-install-item').classList.add('hidden');
-          }
-          deferredPrompt = null;
-        });
-      } else {
-        if (isIosDevice()) {
-          showCustomAlert('Install on iOS/iPad', 'Tap the Share icon (square with an up arrow) at the top or bottom of your browser, and select "Add to Home Screen".', 'info');
-        } else {
-          showCustomAlert('App Install', 'Tap on the Browser menu (3 dots) and select "Add to Home Screen" or "Install App".', 'info');
-        }
-      }
+      if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((cr) => { if (cr.outcome === 'accepted') { dismissPWA(); document.getElementById('drawer-install-item').classList.add('hidden'); } deferredPrompt = null; }); } 
+      else { showCustomAlert(isIosDevice()?'Install on iOS/iPad':'App Install', isIosDevice()?'Tap Share icon & select "Add to Home Screen".':'Tap Browser menu (3 dots) & select "Add to Home Screen".', 'info'); }
     }
-
-    function dismissPWA() {
-      document.getElementById('pwa-install-banner').classList.remove('show');
-    }
-
+    function dismissPWA() { document.getElementById('pwa-install-banner').classList.remove('show'); }
+    
     function shareApp() {
       toggleDrawer(false);
-      // BUG FIX: Ensure the user shares their *own* punching ID as the referral code
       const referCode = currentUser ? currentUser.punching_id : '';
-      const baseUrl = window.location.origin + window.location.pathname;
-      const shareUrl = referCode ? `${baseUrl}?ref=${encodeURIComponent(referCode)}` : baseUrl;
-
-      const shareData = {
-        title: 'Attendance Pro',
-        text: 'Manage attendance and duty records easily with Attendance Pro App!',
-        url: shareUrl
-      };
-
-      if (navigator.share) {
-        navigator.share(shareData).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          showCustomAlert('Link Copied', 'App Referral URL has been copied to clipboard!', 'success');
-        }).catch(() => {
-          showCustomAlert('Share App', `Share this link: ${shareUrl}`, 'info');
-        });
-      }
+      const shareUrl = referCode ? `${window.location.origin}${window.location.pathname}?ref=${encodeURIComponent(referCode)}` : window.location.origin + window.location.pathname;
+      if (navigator.share) { navigator.share({ title: 'Attendance Pro', text: 'Manage attendance easily!', url: shareUrl }).catch(() => {}); } 
+      else { navigator.clipboard.writeText(shareUrl).then(() => { showCustomAlert('Copied', 'Referral URL copied!', 'success'); }).catch(() => { showCustomAlert('Share', shareUrl, 'info'); }); }
     }
 
+    // --- DB SETUP ---
     const SUPABASE_URL = 'https://ruezcsreintvfxqnyriy.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZXpjc3JlaW50dmZ4cW55cml5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDczNTQsImV4cCI6MjEwMTUyMzM1NH0.eJVs8zzC_tYtDL3OJwmlXGXrjnKOAJl8xV_jz_Jz_bM';
-    
     const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
     let currentUser = null;
+    let isAdminLoggedIn = false;
+    let adminEditingUserId = null; 
 
-    function computeEstimatedSalary(totalPayableDays, totalOT, totalNightShifts, yearMonth = null) {
-      if (!currentUser) return 0;
-
-      const monthlySalary = parseFloat(currentUser.monthly_salary || currentUser.salary || 0);
-      const hourlyOtRate = parseFloat(currentUser.ot_rate_per_hour || currentUser.ot_rate || 0);
-      const nightRate = parseFloat(currentUser.night_rate || 0);
-
-      if (isNaN(monthlySalary) || monthlySalary === 0) return 0;
-
-      let year, month;
-      if (yearMonth) {
-        const parts = yearMonth.split('-');
-        year = parseInt(parts[0], 10);
-        month = parseInt(parts[1], 10);
-      } else {
-        const now = new Date();
-        year = now.getFullYear();
-        month = now.getMonth() + 1;
-      }
+    // --- CORE LOGIC ---
+    function computeEstimatedSalary(totalPayableDays, totalOT, totalNightShifts, yearMonth = null, overrideUser = null) {
+      const targetUser = overrideUser || currentUser;
+      if (!targetUser) return 0;
+      const mSal = parseFloat(targetUser.monthly_salary || targetUser.salary || 0);
+      const hOt = parseFloat(targetUser.ot_rate_per_hour || targetUser.ot_rate || 0);
+      const nRat = parseFloat(targetUser.night_rate || 0);
+      if (isNaN(mSal) || mSal === 0) return 0;
       
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const perDayRate = monthlySalary / daysInMonth;
-
-      const totalDutySalary = totalPayableDays * perDayRate;
-      const totalOTAmount = totalOT * (isNaN(hourlyOtRate) ? 0 : hourlyOtRate);
-      const totalNightAmount = totalNightShifts * (isNaN(nightRate) ? 0 : nightRate);
-
-      return Math.round(totalDutySalary + totalOTAmount + totalNightAmount);
+      let year, month;
+      if (yearMonth) { const parts = yearMonth.split('-'); year = parseInt(parts[0], 10); month = parseInt(parts[1], 10); } 
+      else { const now = new Date(); year = now.getFullYear(); month = now.getMonth() + 1; }
+      
+      const perDayRate = mSal / new Date(year, month, 0).getDate();
+      return Math.round((totalPayableDays * perDayRate) + (totalOT * hOt) + (totalNightShifts * nRat));
     }
 
     async function initPage() {
@@ -1342,24 +1144,16 @@
         const refCode = urlParams.get('ref');
         const savedUser = localStorage.getItem('attendance_pro_user');
         
-        if (savedUser) {
-          currentUser = JSON.parse(savedUser);
-          await initUserSession();
-        } else if (refCode) {
-          document.getElementById('reg-refer').value = refCode;
-          toggleAuth(false);
-        }
-      } catch (e) {
-        localStorage.removeItem('attendance_pro_user');
-      } finally {
-        document.getElementById('page-loader').style.display = 'none';
-        document.getElementById('page-content').style.display = 'block';
-      }
+        if (savedUser) { currentUser = JSON.parse(savedUser); await initUserSession(); } 
+        else if (refCode) { document.getElementById('reg-refer').value = refCode; toggleAuth(false); }
+      } catch (e) { localStorage.removeItem('attendance_pro_user'); } 
+      finally { document.getElementById('page-loader').style.display = 'none'; document.getElementById('page-content').style.display = 'block'; }
     }
 
     window.addEventListener('DOMContentLoaded', initPage);
 
     async function initUserSession() {
+      isAdminLoggedIn = false;
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('navbar-container').classList.remove('hidden');
       document.getElementById('dashboard-section').classList.remove('hidden');
@@ -1367,7 +1161,6 @@
       document.getElementById('user-name-display').innerText = currentUser.name || 'Set Name';
       document.getElementById('user-company-display').innerText = currentUser.company_name || 'Company Name';
       document.getElementById('user-pid-display').innerText = currentUser.punching_id;
-      
       document.getElementById('drawer-user-name').innerText = currentUser.name || 'User';
       document.getElementById('drawer-company-name').innerText = currentUser.company_name || '';
       document.getElementById('drawer-user-pid').innerText = `ID: ${currentUser.punching_id}`;
@@ -1377,755 +1170,435 @@
     }
 
     async function refreshAppData() {
-      const icon = document.getElementById('drawer-refresh-icon');
-      icon.classList.add('spin-icon');
-      toggleDrawer(false);
-      
-      await loadDashboard();
-      await loadHistoryData();
-      await loadReferralData();
-      
-      setTimeout(() => {
-        icon.classList.remove('spin-icon');
-      }, 600);
+      const icon = document.getElementById('drawer-refresh-icon'); icon.classList.add('spin-icon'); toggleDrawer(false);
+      if (isAdminLoggedIn) { await loadAdminDash(); } 
+      else { await loadDashboard(); await loadHistoryData(); await loadReferralData(); }
+      setTimeout(() => { icon.classList.remove('spin-icon'); }, 600);
     }
 
     function showCustomAlert(title, message, type = 'info') {
-      const modal = document.getElementById('custom-alert-modal');
-      const iconBox = document.getElementById('alert-icon');
-      const iconI = document.getElementById('alert-icon-i');
-      
-      document.getElementById('alert-title').innerText = title;
-      document.getElementById('alert-message').innerText = message;
-      
+      const modal = document.getElementById('custom-alert-modal'), iconBox = document.getElementById('alert-icon'), iconI = document.getElementById('alert-icon-i');
+      document.getElementById('alert-title').innerText = title; document.getElementById('alert-message').innerText = message;
       iconBox.className = `modal-icon ${type}`;
-      if (type === 'success') iconI.className = 'fa-solid fa-check';
-      else if (type === 'danger') iconI.className = 'fa-solid fa-triangle-exclamation';
-      else if (type === 'warning') iconI.className = 'fa-solid fa-exclamation';
-      else iconI.className = 'fa-solid fa-circle-info';
-
+      iconI.className = type === 'success' ? 'fa-solid fa-check' : (type === 'danger' ? 'fa-solid fa-triangle-exclamation' : (type === 'warning' ? 'fa-solid fa-exclamation' : 'fa-solid fa-circle-info'));
       modal.classList.add('active');
     }
+    function closeCustomAlert() { document.getElementById('custom-alert-modal').classList.remove('active'); }
 
-    function closeCustomAlert() {
-      document.getElementById('custom-alert-modal').classList.remove('active');
-    }
-
-    function openProfileModal() {
-      toggleDrawer(false);
-      if (!currentUser) return;
-      document.getElementById('prof-name').value = currentUser.name || '';
-      document.getElementById('prof-company').value = currentUser.company_name || '';
-      document.getElementById('prof-salary').value = currentUser.monthly_salary || currentUser.salary || '';
-      document.getElementById('prof-ot-rate').value = currentUser.ot_rate_per_hour || currentUser.ot_rate || '';
-      document.getElementById('prof-night-rate').value = currentUser.night_rate || '';
-      
-      document.getElementById('profile-settings-modal').classList.add('active');
-    }
-
-    function closeProfileModal() {
-      document.getElementById('profile-settings-modal').classList.remove('active');
-    }
-
-    async function updateUserProfile() {
-      const newName = document.getElementById('prof-name').value.trim();
-      const newCompany = document.getElementById('prof-company').value.trim();
-      const newSalaryStr = document.getElementById('prof-salary').value.trim();
-      const newOtRateStr = document.getElementById('prof-ot-rate').value.trim();
-      const newNightRateStr = document.getElementById('prof-night-rate').value.trim();
-
-      if (!newName || !newCompany || newSalaryStr === '' || newOtRateStr === '' || newNightRateStr === '') {
-        return showCustomAlert('Missing Details', 'All profile fields are mandatory. Please fill all fields!', 'danger');
-      }
-
-      const newSalary = parseFloat(newSalaryStr);
-      const newOtRate = parseFloat(newOtRateStr);
-      const newNightRate = parseFloat(newNightRateStr);
-
-      if (isNaN(newSalary) || newSalary <= 0 || isNaN(newOtRate) || newOtRate < 0 || isNaN(newNightRate) || newNightRate < 0) {
-        return showCustomAlert('Invalid Data', 'Please enter valid numbers or zero for rates!', 'danger');
-      }
-
-      const btn = document.getElementById('btn-save-profile');
-      const text = document.getElementById('btn-prof-text');
-      const spinner = document.getElementById('btn-prof-spinner');
-
-      btn.disabled = true;
-      text.innerText = "Saving...";
-      spinner.classList.remove('hidden');
-
-      const updatePayload = {
-        name: newName,
-        company_name: newCompany,
-        monthly_salary: newSalary,
-        ot_rate_per_hour: newOtRate,
-        night_rate: newNightRate
-      };
-
-      const { error } = await sbClient
-        .from('users')
-        .update(updatePayload)
-        .eq('punching_id', currentUser.punching_id);
-
-      btn.disabled = false;
-      text.innerText = "Save Profile";
-      spinner.classList.add('hidden');
-
-      if (error) {
-        showCustomAlert('Update Failed', error.message, 'danger');
+    // --- AUTH LOGIC ---
+    let loginMode = 'user';
+    function toggleAdminLoginMode() {
+      const title = document.getElementById('login-title'); const btn = document.getElementById('admin-toggle-btn');
+      if (loginMode === 'user') {
+        loginMode = 'admin'; title.innerText = 'Admin'; btn.innerHTML = '<i class="fa-solid fa-user"></i> User';
+        document.getElementById('login-id').placeholder = 'Admin ID'; document.getElementById('login-password').placeholder = 'Admin Password';
+        document.getElementById('login-footer').classList.add('hidden');
       } else {
-        currentUser.name = newName;
-        currentUser.company_name = newCompany;
-        currentUser.monthly_salary = newSalary;
-        currentUser.ot_rate_per_hour = newOtRate;
-        currentUser.night_rate = newNightRate;
-
-        localStorage.setItem('attendance_pro_user', JSON.stringify(currentUser));
-        
-        closeProfileModal();
-        showCustomAlert('Profile Updated', 'Profile updated successfully!', 'success');
-        
-        document.getElementById('user-name-display').innerText = currentUser.name;
-        document.getElementById('user-company-display').innerText = currentUser.company_name;
-        document.getElementById('drawer-user-name').innerText = currentUser.name;
-        document.getElementById('drawer-company-name').innerText = currentUser.company_name || '';
-        
-        loadDashboard();
-        loadHistoryData();
+        loginMode = 'user'; title.innerText = translations[currentLang].welcome_back || 'Welcome Back'; btn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Admin Login';
+        document.getElementById('login-id').placeholder = 'Enter ID or Mobile'; document.getElementById('login-password').placeholder = '••••••••';
+        document.getElementById('login-footer').classList.remove('hidden');
       }
     }
 
-    function setDefaultMonthFilter() {
-      const todayKolkata = getKolkataYMD();
-      const currentYearMonth = todayKolkata.substring(0, 7);
-      document.getElementById('filter-month').value = currentYearMonth;
-    }
-
-    function toggleAuth(showLogin) {
-      document.getElementById('login-box').classList.toggle('hidden', !showLogin);
-      document.getElementById('reg-box').classList.toggle('hidden', showLogin);
-    }
-
-    function toggleDrawer(open) {
-      document.getElementById('side-drawer').classList.toggle('open', open);
-      document.getElementById('drawer-overlay').classList.toggle('active', open);
-    }
+    function toggleAuth(showLogin) { document.getElementById('login-box').classList.toggle('hidden', !showLogin); document.getElementById('reg-box').classList.toggle('hidden', showLogin); }
+    function toggleDrawer(open) { document.getElementById('side-drawer').classList.toggle('open', open); document.getElementById('drawer-overlay').classList.toggle('active', open); }
 
     function switchView(viewName) {
       toggleDrawer(false);
-      document.getElementById('dashboard-section').classList.add('hidden');
-      document.getElementById('history-section').classList.add('hidden');
-      document.getElementById('referral-section').classList.add('hidden');
-
-      if (viewName === 'dashboard') {
-        document.getElementById('dashboard-section').classList.remove('hidden');
-        loadDashboard();
-      } else if (viewName === 'history') {
-        document.getElementById('history-section').classList.remove('hidden');
-        loadHistoryData();
-      } else if (viewName === 'referral') {
-        document.getElementById('referral-section').classList.remove('hidden');
-        loadReferralData();
-      }
+      ['dashboard-section', 'history-section', 'referral-section', 'admin-dash-section', 'admin-user-att-section'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      if (viewName === 'dashboard') { document.getElementById('dashboard-section').classList.remove('hidden'); loadDashboard(); } 
+      else if (viewName === 'history') { document.getElementById('history-section').classList.remove('hidden'); loadHistoryData(); } 
+      else if (viewName === 'referral') { document.getElementById('referral-section').classList.remove('hidden'); loadReferralData(); }
     }
 
-    async function loadReferralData() {
-      if (!currentUser) return;
-      // BUG FIX: Search for users who used THIS user's punching ID as their referral code. 
-      const myRefCode = currentUser.punching_id;
-
-      const { data: referredUsers, error } = await sbClient.from('users')
-        .select('name, punching_id, mobile')
-        .eq('refer_code', myRefCode);
-
-      const listContainer = document.getElementById('referred-users-list');
-      listContainer.innerHTML = '';
-
-      let count = 0;
-      if (!error && referredUsers && referredUsers.length > 0) {
-        count = referredUsers.length;
-        referredUsers.forEach(user => {
-          let cleanMobile = String(user.mobile || '').replace(/\D/g, '');
-          if (cleanMobile.length === 10) {
-            cleanMobile = '91' + cleanMobile;
-          }
-          const waText = encodeURIComponent(`Hello ${user.name}, welcome to Attendance Pro!`);
-          const waUrl = `https://wa.me/${cleanMobile}?text=${waText}`;
-
-          listContainer.innerHTML += `
-            <div class="attendance-card-item">
-              <div class="att-card-header">
-                <div class="att-card-date">
-                  <i class="fa-solid fa-user" style="color: var(--primary);"></i> ${user.name}
-                </div>
-                <div class="status-badges-group">
-                  <a href="${waUrl}" target="_blank" style="background: #25d366; color: white; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: 700;">
-                    <i class="fa-brands fa-whatsapp"></i> Chat
-                  </a>
-                </div>
-              </div>
-              <div class="att-card-body" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">
-                <div>ID: <span style="color: var(--text-main);">${user.punching_id}</span></div>
-                <div>Mobile: <span style="color: var(--text-main);">${user.mobile}</span></div>
-              </div>
-            </div>
-          `;
-        });
-      } else {
-        listContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 12px; background:#f8fafc; border-radius:10px; border:1px solid var(--border); font-weight:600; font-size:0.75rem;">No referrals yet. Share your link to start earning!</div>`;
-      }
-
-      const totalRewards = count * 5;
-      document.getElementById('ref-total-rewards').innerText = `₹${totalRewards}`;
-    }
-
-    async function registerUser() {
-      let punchingId = document.getElementById('reg-punching-id').value.trim();
-      const name = document.getElementById('reg-name').value.trim();
-      const mobile = document.getElementById('reg-mobile').value.trim();
-      const password = document.getElementById('reg-password').value.trim();
-      const refer = document.getElementById('reg-refer').value.trim();
-
-      if (!name || !mobile || !password) return showCustomAlert('Missing Info', 'Please fill all required fields!', 'danger');
-      if (!punchingId) punchingId = 'P' + Math.floor(100000 + Math.random() * 900000);
-
-      const btn = document.getElementById('btn-reg');
-      const btnText = document.getElementById('btn-reg-text');
-      const spinner = document.getElementById('btn-reg-spinner');
-      btn.disabled = true;
-      btnText.innerText = 'Registering...';
-      spinner.classList.remove('hidden');
-
-      const { error } = await sbClient.from('users').insert([
-        { punching_id: punchingId, name, mobile, password, refer_code: refer }
-      ]);
-
-      btn.disabled = false;
-      btnText.innerText = 'Register Account';
-      spinner.classList.add('hidden');
-
-      if (error) {
-        showCustomAlert('Registration Failed', error.message, 'danger');
-      } else {
-        showCustomAlert('Success', `Registration Successful!\nYour Punching ID is: ${punchingId}`, 'success');
-        toggleAuth(true);
-      }
+    function switchAdminView(viewName) {
+      ['dashboard-section', 'history-section', 'referral-section', 'admin-dash-section', 'admin-user-att-section', 'navbar-container'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      if(viewName === 'admin-dash') { document.getElementById('admin-dash-section').classList.remove('hidden'); loadAdminDash(); }
+      else if(viewName === 'admin-user-att') { document.getElementById('admin-user-att-section').classList.remove('hidden'); loadAdminUserAttendance(); }
     }
 
     async function loginUser() {
-      const loginInput = document.getElementById('login-id').value.trim();
-      const password = document.getElementById('login-password').value.trim();
+      const loginInput = document.getElementById('login-id').value.trim(); const password = document.getElementById('login-password').value.trim();
+      if (!loginInput || !password) return showCustomAlert('Missing Fields', 'Please fill credentials!', 'danger');
 
-      if (!loginInput || !password) return showCustomAlert('Missing Fields', 'Please enter ID/Mobile and Password!', 'danger');
-
-      const btn = document.getElementById('btn-login');
-      const btnText = document.getElementById('btn-login-text');
-      const spinner = document.getElementById('btn-login-spinner');
-      btn.disabled = true;
-      btnText.innerText = 'Signing In...';
-      spinner.classList.remove('hidden');
-
-      const { data, error } = await sbClient.from('users')
-        .select('*')
-        .or(`punching_id.eq.${loginInput},mobile.eq.${loginInput}`)
-        .eq('password', password)
-        .maybeSingle();
-
-      btn.disabled = false;
-      btnText.innerText = 'Sign In';
-      spinner.classList.add('hidden');
-
-      if (error || !data) {
-        showCustomAlert('Login Failed', 'Invalid Punching ID or Password!', 'danger');
-      } else {
-        currentUser = {
-          ...data,
-          company_name: data.company_name || '',
-          monthly_salary: data.monthly_salary || data.salary || 0,
-          ot_rate_per_hour: data.ot_rate_per_hour || data.ot_rate || 0,
-          night_rate: data.night_rate || 0
-        };
-        localStorage.setItem('attendance_pro_user', JSON.stringify(currentUser));
-        initUserSession();
+      if (loginMode === 'admin') {
+        if (loginInput === 'admin' && password === 'admin123') {
+          isAdminLoggedIn = true; currentUser = null; 
+          document.getElementById('auth-section').classList.add('hidden');
+          switchAdminView('admin-dash');
+        } else { showCustomAlert('Admin Auth Failed', 'Invalid Admin Credentials!', 'danger'); }
+        return;
       }
+
+      const btn = document.getElementById('btn-login'), btnText = document.getElementById('btn-login-text'), spinner = document.getElementById('btn-login-spinner');
+      btn.disabled = true; btnText.innerText = 'Signing In...'; spinner.classList.remove('hidden');
+      const { data, error } = await sbClient.from('users').select('*').or(`punching_id.eq.${loginInput},mobile.eq.${loginInput}`).eq('password', password).maybeSingle();
+      btn.disabled = false; btnText.innerText = 'Sign In'; spinner.classList.add('hidden');
+
+      if (error || !data) { showCustomAlert('Login Failed', 'Invalid ID or Password!', 'danger'); } 
+      else { currentUser = { ...data, company_name: data.company_name || '', monthly_salary: data.monthly_salary || data.salary || 0, ot_rate_per_hour: data.ot_rate_per_hour || data.ot_rate || 0, night_rate: data.night_rate || 0 }; localStorage.setItem('attendance_pro_user', JSON.stringify(currentUser)); initUserSession(); }
     }
 
     function logout() {
-      currentUser = null;
-      localStorage.removeItem('attendance_pro_user');
+      currentUser = null; isAdminLoggedIn = false; localStorage.removeItem('attendance_pro_user');
+      ['navbar-container', 'dashboard-section', 'history-section', 'referral-section', 'admin-dash-section', 'admin-user-att-section'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById('auth-section').classList.remove('hidden'); 
+      if(loginMode === 'admin') toggleAdminLoginMode(); else toggleAuth(true);
       toggleDrawer(false);
-      document.getElementById('navbar-container').classList.add('hidden');
-      document.getElementById('dashboard-section').classList.add('hidden');
-      document.getElementById('history-section').classList.add('hidden');
-      document.getElementById('referral-section').classList.add('hidden');
-      document.getElementById('auth-section').classList.remove('hidden');
-      toggleAuth(true);
     }
+
+    // --- REGISTRATION / ADD USER ---
+    async function registerUser(isAdminCreating = false) {
+      let punchingId = document.getElementById('reg-punching-id').value.trim();
+      const name = document.getElementById('reg-name').value.trim(), mobile = document.getElementById('reg-mobile').value.trim(), password = document.getElementById('reg-password').value.trim(), refer = document.getElementById('reg-refer').value.trim();
+
+      if (!name || !mobile || !password) return showCustomAlert('Missing Info', 'Please fill required fields!', 'danger');
+      if (!punchingId) punchingId = 'P' + Math.floor(100000 + Math.random() * 900000);
+
+      const btn = document.getElementById('btn-reg'), btnText = document.getElementById('btn-reg-text'), spinner = document.getElementById('btn-reg-spinner');
+      btn.disabled = true; btnText.innerText = 'Registering...'; spinner.classList.remove('hidden');
+      const { error } = await sbClient.from('users').insert([{ punching_id: punchingId, name, mobile, password, refer_code: refer }]);
+      btn.disabled = false; btnText.innerText = isAdminCreating ? 'Create' : 'Register Account'; spinner.classList.add('hidden');
+
+      if (error) { showCustomAlert('Failed', error.message, 'danger'); } 
+      else {
+        showCustomAlert('Success', `Registered Successfully!\nPunching ID: ${punchingId}`, 'success');
+        if (isAdminCreating) { toggleAuth(true); document.getElementById('reg-box').classList.add('hidden'); loadAdminDash(); } 
+        else { toggleAuth(true); }
+      }
+    }
+
+    function openAdminAddUser() {
+      // Re-use reg-box but modify UI for admin
+      document.getElementById('reg-punching-id').value = ''; document.getElementById('reg-name').value = '';
+      document.getElementById('reg-mobile').value = ''; document.getElementById('reg-password').value = '';
+      document.getElementById('reg-refer').value = '';
+      
+      const regBox = document.getElementById('reg-box');
+      regBox.querySelector('h2').innerText = "Admin: Create New User";
+      regBox.querySelector('.auth-footer').classList.add('hidden'); // hide login link
+      
+      const btn = document.getElementById('btn-reg');
+      btn.onclick = () => registerUser(true);
+      btn.innerHTML = `<span id="btn-reg-text">Create User</span> <span id="btn-reg-spinner" class="spinner hidden"></span>`;
+      
+      const closeBtn = document.createElement('button');
+      closeBtn.className = "btn-secondary"; closeBtn.innerText = "Cancel"; closeBtn.style.marginTop="8px"; closeBtn.id = "admin-reg-close";
+      closeBtn.onclick = () => { regBox.classList.add('hidden'); document.getElementById('admin-reg-close').remove(); };
+      if(!document.getElementById('admin-reg-close')) regBox.appendChild(closeBtn);
+      
+      regBox.classList.remove('hidden');
+      regBox.style.position = "fixed"; regBox.style.top = "50%"; regBox.style.left = "50%"; regBox.style.transform = "translate(-50%, -50%)"; regBox.style.zIndex="9999"; regBox.style.boxShadow = "0 10px 40px rgba(0,0,0,0.3)";
+    }
+
+    // --- ADMIN DASHBOARD ACTIONS ---
+    async function loadAdminDash() {
+      const { data: users, error } = await sbClient.from('users').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('admin-users-container'); container.innerHTML = '';
+      if(users) {
+        document.getElementById('admin-total-users-count').innerText = users.length;
+        users.forEach(u => {
+          container.innerHTML += `
+            <div class="admin-user-card">
+              <div class="admin-user-header">
+                <div><div class="admin-user-name">${u.name}</div><div class="admin-user-id">ID: ${u.punching_id} | Mob: ${u.mobile}</div></div>
+                <button class="btn-edit" style="background:#ef4444;" onclick="adminDeleteUser('${u.punching_id}')"><i class="fa-solid fa-trash"></i></button>
+              </div>
+              <div class="admin-action-grid">
+                <button class="btn-secondary" style="font-size: 0.7rem; padding: 6px; color:#10b981; border-color:#a7f3d0;" onclick='adminEditProfile(${JSON.stringify(u)})'><i class="fa-solid fa-user-pen"></i> Edit Profile</button>
+                <button class="btn-secondary" style="font-size: 0.7rem; padding: 6px; color:#3b82f6; border-color:#bfdbfe;" onclick="openAdminEditAuth('${u.punching_id}', '${u.mobile}', '${u.password}')"><i class="fa-solid fa-key"></i> Credentials</button>
+                <button class="btn-secondary" style="font-size: 0.7rem; padding: 6px; color:#f59e0b; border-color:#fde68a;" onclick="openAdminReferrals('${u.punching_id}', '${u.name}')"><i class="fa-solid fa-users"></i> Referrals</button>
+                <button class="btn-secondary" style="font-size: 0.7rem; padding: 6px; background:#0f172a; color:#fff;" onclick="openAdminUserAttendance('${u.punching_id}', '${u.name}')"><i class="fa-solid fa-calendar-check"></i> Attendance</button>
+              </div>
+            </div>`;
+        });
+      }
+    }
+
+    async function adminDeleteUser(pid) {
+      if(!confirm("WARNING: This will permanently delete the user and all their attendance records. Proceed?")) return;
+      await sbClient.from('attendance').delete().eq('punching_id', pid);
+      await sbClient.from('users').delete().eq('punching_id', pid);
+      showCustomAlert('Deleted', 'User and records removed successfully.', 'success');
+      loadAdminDash();
+    }
+
+    function adminEditProfile(u) {
+      adminEditingUserId = u.punching_id;
+      document.getElementById('prof-name').value = u.name || '';
+      document.getElementById('prof-company').value = u.company_name || '';
+      document.getElementById('prof-salary').value = u.monthly_salary || u.salary || '';
+      document.getElementById('prof-ot-rate').value = u.ot_rate_per_hour || u.ot_rate || '';
+      document.getElementById('prof-night-rate').value = u.night_rate || '';
+      document.getElementById('profile-settings-modal').classList.add('active');
+    }
+
+    function openAdminEditAuth(pid, mob, pass) {
+      adminEditingUserId = pid;
+      document.getElementById('admin-auth-mobile').value = mob;
+      document.getElementById('admin-auth-password').value = pass;
+      document.getElementById('admin-edit-auth-modal').classList.add('active');
+    }
+    function closeAdminEditAuth() { document.getElementById('admin-edit-auth-modal').classList.remove('active'); }
+
+    async function saveAdminAuthEdit() {
+      const mob = document.getElementById('admin-auth-mobile').value.trim(), pass = document.getElementById('admin-auth-password').value.trim();
+      if(!mob || !pass) return showCustomAlert('Error', 'Fields cannot be empty!', 'danger');
+      await sbClient.from('users').update({ mobile: mob, password: pass }).eq('punching_id', adminEditingUserId);
+      closeAdminEditAuth(); showCustomAlert('Success', 'Credentials Updated', 'success'); loadAdminDash();
+    }
+
+    async function openAdminReferrals(pid, name) {
+      document.getElementById('admin-ref-user-name').innerText = name;
+      const { data: refs } = await sbClient.from('users').select('name, punching_id, mobile').eq('refer_code', pid);
+      const container = document.getElementById('admin-ref-list-container'); container.innerHTML = '';
+      if(refs && refs.length > 0) {
+        refs.forEach(r => { container.innerHTML += `<div class="attendance-card-item"><div class="att-card-header"><div class="att-card-date">${r.name}</div></div><div class="att-card-body" style="font-size:0.75rem;">ID: ${r.punching_id} | Mob: ${r.mobile}</div></div>`; });
+      } else { container.innerHTML = `<div style="text-align:center;font-size:0.75rem;padding:10px;">No referrals found.</div>`; }
+      document.getElementById('admin-referral-modal').classList.add('active');
+    }
+    function closeAdminReferrals() { document.getElementById('admin-referral-modal').classList.remove('active'); }
+
+    function openAdminUserAttendance(pid, name) {
+      adminEditingUserId = pid;
+      document.getElementById('admin-att-view-name').innerText = name + "'s Attendance";
+      document.getElementById('admin-filter-month').value = getKolkataYMD().substring(0, 7);
+      switchAdminView('admin-user-att');
+    }
+
+    async function loadAdminUserAttendance() {
+      const selectedMonth = document.getElementById('admin-filter-month').value; if (!selectedMonth) return;
+      const [yearStr, monthStr] = selectedMonth.split('-'); const lastDay = new Date(parseInt(yearStr), parseInt(monthStr), 0).getDate();
+      const { data: history } = await sbClient.from('attendance').select('*').eq('punching_id', adminEditingUserId).gte('date', `${selectedMonth}-01`).lte('date', `${selectedMonth}-${lastDay}`).order('date', { ascending: false });
+      renderAttendanceCards('admin-user-att-list', history);
+    }
+
+    async function adminDeleteAttendanceRow(id) {
+      if(!confirm("Delete this attendance record?")) return;
+      await sbClient.from('attendance').delete().eq('id', id);
+      loadAdminUserAttendance();
+    }
+
+    // --- PROFILE LOGIC ---
+    function isProfileIncomplete() {
+      if(isAdminLoggedIn) return false;
+      if (!currentUser) return true;
+      const name = currentUser.name ? String(currentUser.name).trim() : '', company = currentUser.company_name ? String(currentUser.company_name).trim() : '';
+      const salary = parseFloat(currentUser.monthly_salary || currentUser.salary || 0), ot = parseFloat(currentUser.ot_rate_per_hour || currentUser.ot_rate || 0), nightRate = parseFloat(currentUser.night_rate || 0);
+      return (!name || !company || isNaN(salary) || salary <= 0 || isNaN(ot) || ot < 0 || isNaN(nightRate) || nightRate < 0);
+    }
+
+    function openProfileModal() {
+      if(isAdminLoggedIn) return; // handled separately
+      toggleDrawer(false); if (!currentUser) return;
+      document.getElementById('prof-name').value = currentUser.name || ''; document.getElementById('prof-company').value = currentUser.company_name || '';
+      document.getElementById('prof-salary').value = currentUser.monthly_salary || currentUser.salary || ''; document.getElementById('prof-ot-rate').value = currentUser.ot_rate_per_hour || currentUser.ot_rate || '';
+      document.getElementById('prof-night-rate').value = currentUser.night_rate || '';
+      document.getElementById('profile-settings-modal').classList.add('active');
+    }
+    function closeProfileModal() { document.getElementById('profile-settings-modal').classList.remove('active'); }
+
+    async function updateUserProfile() {
+      const newName = document.getElementById('prof-name').value.trim(), newCompany = document.getElementById('prof-company').value.trim();
+      const newSalary = parseFloat(document.getElementById('prof-salary').value), newOtRate = parseFloat(document.getElementById('prof-ot-rate').value), newNightRate = parseFloat(document.getElementById('prof-night-rate').value);
+
+      if (!newName || !newCompany || isNaN(newSalary) || newSalary <= 0 || isNaN(newOtRate) || newOtRate < 0 || isNaN(newNightRate) || newNightRate < 0) {
+        return showCustomAlert('Invalid Data', 'All fields mandatory & must be valid positive numbers!', 'danger');
+      }
+
+      const btn = document.getElementById('btn-save-profile'), text = document.getElementById('btn-prof-text'), spinner = document.getElementById('btn-prof-spinner');
+      btn.disabled = true; text.innerText = "Saving..."; spinner.classList.remove('hidden');
+
+      const targetId = isAdminLoggedIn ? adminEditingUserId : currentUser.punching_id;
+      const updatePayload = { name: newName, company_name: newCompany, monthly_salary: newSalary, ot_rate_per_hour: newOtRate, night_rate: newNightRate };
+      const { error } = await sbClient.from('users').update(updatePayload).eq('punching_id', targetId);
+
+      btn.disabled = false; text.innerText = "Save Profile"; spinner.classList.add('hidden');
+
+      if (error) { showCustomAlert('Update Failed', error.message, 'danger'); } 
+      else {
+        closeProfileModal(); showCustomAlert('Profile Updated', 'Success!', 'success');
+        if (isAdminLoggedIn) { loadAdminDash(); } 
+        else {
+          currentUser = { ...currentUser, ...updatePayload }; localStorage.setItem('attendance_pro_user', JSON.stringify(currentUser));
+          document.getElementById('user-name-display').innerText = currentUser.name; document.getElementById('user-company-display').innerText = currentUser.company_name;
+          document.getElementById('drawer-user-name').innerText = currentUser.name; document.getElementById('drawer-company-name').innerText = currentUser.company_name;
+          loadDashboard(); loadHistoryData();
+        }
+      }
+    }
+
+    // --- ATTENDANCE MODAL LOGIC ---
+    function setDefaultMonthFilter() { document.getElementById('filter-month').value = getKolkataYMD().substring(0, 7); }
 
     function openAttendanceModal(editData = null) {
-      if (isProfileIncomplete()) {
-        showCustomAlert('Profile Update Required', 'Please complete all profile details first!', 'info');
-        openProfileModal();
-        return;
-      }
+      if (isProfileIncomplete()) { showCustomAlert('Profile Required', 'Please complete all profile details first!', 'info'); openProfileModal(); return; }
       toggleDrawer(false);
 
-      const shiftGroupElem = document.getElementById('group-att-shift');
-      if (shiftGroupElem) shiftGroupElem.classList.remove('shift-error-highlight');
-      const statusGroupElem = document.getElementById('group-att-status');
-      if (statusGroupElem) statusGroupElem.classList.remove('shift-error-highlight');
+      const shiftGroup = document.getElementById('group-att-shift'), statusGroup = document.getElementById('group-att-status');
+      if (shiftGroup) shiftGroup.classList.remove('shift-error-highlight'); if (statusGroup) statusGroup.classList.remove('shift-error-highlight');
 
       if (editData) {
-        document.getElementById('att-modal-title').innerText = 'Edit Attendance';
-        document.getElementById('att-edit-row-id').value = editData.id;
-        document.getElementById('att-date').value = editData.date;
-        setAttendanceStatus(editData.status || 'Present');
-        
-        const otVal = parseFloat(editData.overtime_hours || 0);
-        document.getElementById('att-ot-value').value = otVal;
-        document.getElementById('att-ot-display').innerText = `${otVal.toFixed(1)} Hrs`;
-
-        const isNight = editData.is_night_duty === true;
-        if (editData.status === 'Present' || (editData.status === 'Leave' && otVal > 0)) {
-          document.getElementById('att-shift-select').value = isNight ? 'Night' : 'Day';
-        } else {
-          document.getElementById('att-shift-select').value = 'Day';
-        }
-
-        if (editData.status !== 'Present') {
-          document.getElementById('att-remark-input').value = editData.remark || '';
-        } else {
-          document.getElementById('att-remark-input').value = '';
-        }
+        document.getElementById('att-modal-title').innerText = 'Edit Attendance'; document.getElementById('att-edit-row-id').value = editData.id;
+        document.getElementById('att-date').value = editData.date; setAttendanceStatus(editData.status || 'Present');
+        const otVal = parseFloat(editData.overtime_hours || 0); document.getElementById('att-ot-value').value = otVal; document.getElementById('att-ot-display').innerText = `${otVal.toFixed(1)} Hrs`;
+        document.getElementById('att-shift-select').value = (editData.status === 'Present' || otVal > 0) ? (editData.is_night_duty ? 'Night' : 'Day') : 'Day';
+        document.getElementById('att-remark-input').value = editData.status !== 'Present' ? (editData.remark || '') : '';
       } else {
-        document.getElementById('att-modal-title').innerText = translations[currentLang].add_attendance || 'Add Attendance';
-        document.getElementById('att-edit-row-id').value = '';
-        
-        const selectedDateStr = getKolkataYMD();
-        document.getElementById('att-date').value = selectedDateStr;
-        
-        document.getElementById('att-status-value').value = '';
-        document.getElementById('att-btn-present').classList.remove('active');
-        document.getElementById('att-btn-absent').classList.remove('active');
-        document.getElementById('att-btn-leave').classList.remove('active');
-
-        document.getElementById('att-ot-value').value = 0;
-        document.getElementById('att-ot-display').innerText = '0.0 Hrs';
-        
-        document.getElementById('att-shift-select').value = 'Day';
-        document.getElementById('att-remark-input').value = '';
+        document.getElementById('att-modal-title').innerText = isAdminLoggedIn ? 'Admin Add Attendance' : (translations[currentLang].add_attendance || 'Add Attendance');
+        document.getElementById('att-edit-row-id').value = ''; document.getElementById('att-date').value = getKolkataYMD();
+        document.getElementById('att-status-value').value = ''; document.getElementById('att-btn-present').classList.remove('active'); document.getElementById('att-btn-absent').classList.remove('active'); document.getElementById('att-btn-leave').classList.remove('active');
+        document.getElementById('att-ot-value').value = 0; document.getElementById('att-ot-display').innerText = '0.0 Hrs'; document.getElementById('att-shift-select').value = 'Day'; document.getElementById('att-remark-input').value = '';
       }
-
-      checkShiftVisibility();
-
-      document.getElementById('attendance-modal').classList.add('active');
-
-      const fieldIds = ['group-att-date', 'group-att-status', 'group-att-shift', 'group-att-ot', 'group-att-remark'];
-      fieldIds.forEach((id, index) => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.classList.remove('pro-highlight-anim');
-          void el.offsetWidth;
-          setTimeout(() => {
-            el.classList.add('pro-highlight-anim');
-          }, index * 120);
-        }
-      });
+      checkShiftVisibility(); document.getElementById('attendance-modal').classList.add('active');
+      ['group-att-date', 'group-att-status', 'group-att-shift', 'group-att-ot', 'group-att-remark'].forEach((id, i) => { const el = document.getElementById(id); if (el) { el.classList.remove('pro-highlight-anim'); void el.offsetWidth; setTimeout(() => el.classList.add('pro-highlight-anim'), i * 120); } });
     }
 
-    function onAttendanceDateChange() {}
-
     function checkShiftVisibility() {
-      const status = document.getElementById('att-status-value').value;
-      const otVal = parseFloat(document.getElementById('att-ot-value').value || 0);
-      const shiftGroup = document.getElementById('group-att-shift');
-      const remarkGroup = document.getElementById('group-att-remark');
-
-      if (status === 'Present' || (status === 'Leave' && otVal > 0)) {
-        if (shiftGroup) shiftGroup.style.display = 'block';
-      } else {
-        if (shiftGroup) shiftGroup.style.display = 'none';
-      }
-
-      if (status === 'Present') {
-        if (remarkGroup) remarkGroup.style.display = 'none';
-        document.getElementById('att-remark-input').value = '';
-      } else {
-        if (remarkGroup) remarkGroup.style.display = 'block';
-      }
+      const status = document.getElementById('att-status-value').value, otVal = parseFloat(document.getElementById('att-ot-value').value || 0);
+      const shiftGroup = document.getElementById('group-att-shift'), remarkGroup = document.getElementById('group-att-remark');
+      if (status === 'Present' || (status === 'Leave' && otVal > 0)) { if (shiftGroup) shiftGroup.style.display = 'block'; } else { if (shiftGroup) shiftGroup.style.display = 'none'; }
+      if (status === 'Present') { if (remarkGroup) remarkGroup.style.display = 'none'; document.getElementById('att-remark-input').value = ''; } else { if (remarkGroup) remarkGroup.style.display = 'block'; }
     }
 
     function setAttendanceStatus(status) {
       document.getElementById('att-status-value').value = status;
-      const statusGroupElem = document.getElementById('group-att-status');
-      if (statusGroupElem) statusGroupElem.classList.remove('shift-error-highlight');
-      
-      document.getElementById('att-btn-present').classList.remove('active');
-      document.getElementById('att-btn-absent').classList.remove('active');
-      document.getElementById('att-btn-leave').classList.remove('active');
-
+      const statusGroup = document.getElementById('group-att-status'); if (statusGroup) statusGroup.classList.remove('shift-error-highlight');
+      document.getElementById('att-btn-present').classList.remove('active'); document.getElementById('att-btn-absent').classList.remove('active'); document.getElementById('att-btn-leave').classList.remove('active');
       const otGroup = document.getElementById('att-ot-group');
-
-      if (status === 'Present') {
-        document.getElementById('att-btn-present').classList.add('active');
-        if (otGroup) otGroup.style.display = 'block';
-      } else if (status === 'Absent') {
-        document.getElementById('att-btn-absent').classList.add('active');
-        if (otGroup) otGroup.style.display = 'none';
-        document.getElementById('att-ot-value').value = 0;
-        document.getElementById('att-ot-display').innerText = '0.0 Hrs';
-      } else if (status === 'Leave') {
-        document.getElementById('att-btn-leave').classList.add('active');
-        if (otGroup) otGroup.style.display = 'block';
-      }
-
+      if (status === 'Present') { document.getElementById('att-btn-present').classList.add('active'); if (otGroup) otGroup.style.display = 'block'; } 
+      else if (status === 'Absent') { document.getElementById('att-btn-absent').classList.add('active'); if (otGroup) otGroup.style.display = 'none'; document.getElementById('att-ot-value').value = 0; document.getElementById('att-ot-display').innerText = '0.0 Hrs'; } 
+      else if (status === 'Leave') { document.getElementById('att-btn-leave').classList.add('active'); if (otGroup) otGroup.style.display = 'block'; }
       checkShiftVisibility();
     }
 
     function adjustOT(amount) {
-      let currentVal = parseFloat(document.getElementById('att-ot-value').value || 0);
-      currentVal += amount;
-      if (currentVal < 0) currentVal = 0;
-      document.getElementById('att-ot-value').value = currentVal;
-      document.getElementById('att-ot-display').innerText = `${currentVal.toFixed(1)} Hrs`;
-
-      checkShiftVisibility();
+      let val = parseFloat(document.getElementById('att-ot-value').value || 0) + amount; if (val < 0) val = 0;
+      document.getElementById('att-ot-value').value = val; document.getElementById('att-ot-display').innerText = `${val.toFixed(1)} Hrs`; checkShiftVisibility();
     }
 
-    function closeAttendanceModal() {
-      document.getElementById('attendance-modal').classList.remove('active');
-    }
+    function closeAttendanceModal() { document.getElementById('attendance-modal').classList.remove('active'); }
 
     async function submitAttendance() {
-      const editId = document.getElementById('att-edit-row-id').value;
-      const dateInput = document.getElementById('att-date').value;
-      let status = document.getElementById('att-status-value').value;
-      let shiftVal = document.getElementById('att-shift-select').value;
-      let otHours = parseFloat(document.getElementById('att-ot-value').value || 0);
-      let remark = document.getElementById('att-remark-input').value.trim();
-
-      if (!dateInput) {
-        return showCustomAlert('Missing Info', 'Please select a date!', 'danger');
-      }
-
-      if (!status) {
-        const statusGroupElem = document.getElementById('group-att-status');
-        if (statusGroupElem) {
-          statusGroupElem.classList.remove('shift-error-highlight');
-          void statusGroupElem.offsetWidth;
-          statusGroupElem.classList.add('shift-error-highlight');
-        }
-        return showCustomAlert('Mandatory Field', 'Please select attendance status (Present, Absent, or Leave)!', 'danger');
-      }
-
-      const selectedDateObj = new Date(dateInput);
-      const isSunday = selectedDateObj.getDay() === 0;
-
-      if (isSunday && status === 'Present') {
-        status = 'Leave';
-        if (!remark) {
-          remark = 'Sunday Leave conversion';
-        }
-      }
-
-      if (status === 'Present') {
-        remark = '';
-      } else if (status === 'Absent') {
-        shiftVal = 'Day';
-        otHours = 0;
-      }
-
-      const isNight = (shiftVal === 'Night');
-
-      const btn = document.getElementById('btn-save-att');
-      const btnTextEl = document.getElementById('btn-att-text');
-      const spinner = document.getElementById('btn-att-spinner');
+      const editId = document.getElementById('att-edit-row-id').value, dateInput = document.getElementById('att-date').value;
+      let status = document.getElementById('att-status-value').value, shiftVal = document.getElementById('att-shift-select').value, otHours = parseFloat(document.getElementById('att-ot-value').value || 0), remark = document.getElementById('att-remark-input').value.trim();
       
-      btn.disabled = true;
-      btnTextEl.innerText = "Saving...";
-      spinner.classList.remove('hidden');
+      if (!dateInput) return showCustomAlert('Missing Info', 'Please select a date!', 'danger');
+      if (!status) { const sg = document.getElementById('group-att-status'); if (sg) { sg.classList.remove('shift-error-highlight'); void sg.offsetWidth; sg.classList.add('shift-error-highlight'); } return showCustomAlert('Mandatory', 'Select attendance status!', 'danger'); }
 
-      let dutyHours = (status === 'Present') ? 8 : 0;
+      if (new Date(dateInput).getDay() === 0 && status === 'Present') { status = 'Leave'; if (!remark) remark = 'Sunday Leave conversion'; }
+      if (status === 'Present') remark = ''; else if (status === 'Absent') { shiftVal = 'Day'; otHours = 0; }
+      
+      const btn = document.getElementById('btn-save-att'), text = document.getElementById('btn-att-text'), spinner = document.getElementById('btn-att-spinner');
+      btn.disabled = true; text.innerText = "Saving..."; spinner.classList.remove('hidden');
 
-      const payload = {
-        punching_id: currentUser.punching_id,
-        date: dateInput,
-        punch_in: null,
-        punch_out: null,
-        total_hours: (dutyHours + otHours).toFixed(2),
-        duty_hours: dutyHours.toFixed(2),
-        overtime_hours: otHours.toFixed(2),
-        is_night_duty: isNight,
-        status: status,
-        remark: remark
-      };
+      const targetPid = isAdminLoggedIn ? adminEditingUserId : currentUser.punching_id;
+      const payload = { punching_id: targetPid, date: dateInput, total_hours: (status === 'Present' ? 8 : 0 + otHours).toFixed(2), duty_hours: (status === 'Present' ? 8 : 0).toFixed(2), overtime_hours: otHours.toFixed(2), is_night_duty: shiftVal === 'Night', status: status, remark: remark };
 
       let error = null;
+      if (editId) { const { error: err } = await sbClient.from('attendance').update(payload).eq('id', editId); error = err; } 
+      else { await sbClient.from('attendance').delete().eq('punching_id', targetPid).eq('date', dateInput); const { error: err } = await sbClient.from('attendance').insert([payload]); error = err; }
 
-      if (editId) {
-        const { error: err } = await sbClient.from('attendance').update(payload).eq('id', editId);
-        error = err;
-      } else {
-        await sbClient.from('attendance').delete().eq('punching_id', currentUser.punching_id).eq('date', dateInput);
-        const { error: err } = await sbClient.from('attendance').insert([payload]);
-        error = err;
-      }
+      btn.disabled = false; text.innerText = "Save"; spinner.classList.add('hidden'); closeAttendanceModal();
 
-      btn.disabled = false;
-      btnTextEl.innerText = "Save";
-      spinner.classList.add('hidden');
-
-      closeAttendanceModal();
-
-      if (error) {
-        showCustomAlert('Error', error.message, 'danger');
-      } else {
-        loadDashboard();
-        loadHistoryData();
-        if (!editId) {
-          showPunchSuccessModal(dateInput, status, otHours, isNight, remark);
-        } else {
-          showCustomAlert('Updated', 'Record Updated Successfully!', 'success');
-        }
+      if (error) { showCustomAlert('Error', error.message, 'danger'); } 
+      else {
+        if(isAdminLoggedIn) { loadAdminUserAttendance(); } else { loadDashboard(); loadHistoryData(); }
+        if (!editId && !isAdminLoggedIn) showPunchSuccessModal(dateInput, status, otHours, shiftVal === 'Night', remark);
+        else showCustomAlert('Updated', 'Record Saved!', 'success');
       }
     }
 
     function renderAttendanceCards(containerId, history) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = '';
-
-      if (!history || history.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 12px; background:#f8fafc; border-radius:10px; border:1px solid var(--border); font-weight:600; font-size:0.75rem;">No records found for this month</div>`;
-        return;
-      }
+      const container = document.getElementById(containerId); container.innerHTML = '';
+      if (!history || history.length === 0) { container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 12px; background:#f8fafc; border-radius:10px; border:1px solid var(--border); font-weight:600; font-size:0.75rem;">No records found</div>`; return; }
 
       history.forEach(row => {
-        const isAbsent = row.status === 'Absent';
-        const isLeave = row.status === 'Leave';
-        const isNight = row.is_night_duty === true;
-        const otVal = parseFloat(row.overtime_hours || 0);
+        const isSun = new Date(row.date).getDay() === 0, otVal = parseFloat(row.overtime_hours || 0);
+        let statusBadgeClass = '', cardBgClass = 'status-present';
+        if (isSun) { statusBadgeClass = otVal > 0 ? 'sunday-green' : 'sunday-red'; cardBgClass = otVal > 0 ? 'status-sunday-green' : 'status-sunday-red'; } 
+        else if (row.status === 'Absent') { statusBadgeClass = 'absent'; cardBgClass = 'status-absent'; } 
+        else if (row.status === 'Leave') { statusBadgeClass = 'leave'; cardBgClass = 'status-leave'; } 
+        else if (row.is_night_duty) { cardBgClass = 'status-night'; statusBadgeClass = 'night'; }
         
-        const recordDate = new Date(row.date);
-        const isSunday = recordDate.getDay() === 0;
-
-        let statusBadgeClass = '';
-        let cardBgClass = 'status-present';
-
-        if (isSunday) {
-          if (otVal > 0) {
-            statusBadgeClass = 'sunday-green';
-            cardBgClass = 'status-sunday-green';
-          } else {
-            statusBadgeClass = 'sunday-red';
-            cardBgClass = 'status-sunday-red';
-          }
-        } else if (isAbsent) {
-          statusBadgeClass = 'absent';
-          cardBgClass = 'status-absent';
-        } else if (isLeave) {
-          statusBadgeClass = 'leave';
-          cardBgClass = 'status-leave';
-        } else if (isNight) {
-          cardBgClass = 'status-night';
-          statusBadgeClass = 'night';
-        } else {
-          cardBgClass = 'status-present';
-          statusBadgeClass = '';
-        }
-
-        const formattedDate = formatDateDDMMYYYY(row.date);
-        const showShiftOnCard = (!isAbsent && (row.status === 'Present' || otVal > 0));
-
         let displayStatus = row.status || 'Present';
-        if (currentLang === 'hi') {
-          if (displayStatus === 'Present') displayStatus = 'उपस्थित';
-          else if (displayStatus === 'Absent') displayStatus = 'अनुपस्थित';
-          else if (displayStatus === 'Leave') displayStatus = 'अवकाश';
-        }
+        if (currentLang === 'hi') displayStatus = displayStatus === 'Present' ? 'उपस्थित' : (displayStatus === 'Absent' ? 'अनुपस्थित' : 'अवकाश');
+        
+        const showShift = row.status !== 'Absent' && (row.status === 'Present' || otVal > 0);
+        const adminDeleteBtn = isAdminLoggedIn ? `<button class="btn-edit" style="background:#ef4444; margin-left:6px;" onclick="adminDeleteAttendanceRow('${row.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
 
-        const cardHtml = `
+        container.innerHTML += `
           <div class="attendance-card-item ${cardBgClass}">
             <div class="att-card-header">
-              <div class="att-card-date">
-                <i class="fa-regular fa-calendar-check" style="color: var(--primary);"></i> ${formattedDate}
-              </div>
+              <div class="att-card-date"><i class="fa-regular fa-calendar-check" style="color: var(--primary);"></i> ${formatDateDDMMYYYY(row.date)}</div>
               <div class="status-badges-group">
-                ${showShiftOnCard ? (isNight ? `<span class="status-badge night"><i class="fa-solid fa-moon"></i> ${currentLang==='hi'?'नाइट शिफ्ट':'Night Shift'}</span>` : `<span class="status-badge" style="background:#0284c7; color:#ffffff;"><i class="fa-solid fa-sun"></i> ${currentLang==='hi'?'डे शिफ्ट':'Day Shift'}</span>`) : ''}
+                ${showShift ? (row.is_night_duty ? `<span class="status-badge night"><i class="fa-solid fa-moon"></i> ${currentLang==='hi'?'नाइट':'Night'}</span>` : `<span class="status-badge" style="background:#0284c7; color:#ffffff;"><i class="fa-solid fa-sun"></i> ${currentLang==='hi'?'डे':'Day'}</span>`) : ''}
                 <span class="status-badge ${statusBadgeClass}">${displayStatus}</span>
               </div>
             </div>
-            
-            ${!isAbsent ? `
-            <div class="att-card-body">
-              <div class="att-info-box">
-                <label>${currentLang==='hi'?'ओवरटाइम (OT):':'Overtime (OT):'}</label>
-                <span><b>${row.overtime_hours || 0} hrs</b></span>
-              </div>
-            </div>
-            ` : ''}
-
-            ${(row.status !== 'Present' && row.remark) ? `
-            <div style="font-size: 0.725rem; color: #1e293b; font-weight: 700; background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 6px;">
-              <i class="fa-solid fa-note-sticky" style="color: var(--primary); margin-right: 4px;"></i> ${row.remark}
-            </div>
-            ` : ''}
-
-            <div class="att-card-footer">
-              <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;"></span>
-              <button class="btn-edit" onclick='openAttendanceModal(${JSON.stringify(row)})'><i class="fa-solid fa-pen"></i> ${currentLang==='hi'?'संपादित करें':'Edit'}</button>
-            </div>
-          </div>
-        `;
-        container.innerHTML += cardHtml;
+            ${row.status !== 'Absent' ? `<div class="att-card-body"><div class="att-info-box"><label>Overtime (OT):</label><span><b>${row.overtime_hours || 0} hrs</b></span></div></div>` : ''}
+            ${(row.status !== 'Present' && row.remark) ? `<div style="font-size: 0.725rem; color: #1e293b; font-weight: 700; background: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 6px;"><i class="fa-solid fa-note-sticky" style="color: var(--primary);"></i> ${row.remark}</div>` : ''}
+            <div class="att-card-footer"><span></span> <div><button class="btn-edit" onclick='openAttendanceModal(${JSON.stringify(row)})'><i class="fa-solid fa-pen"></i> Edit</button>${adminDeleteBtn}</div></div>
+          </div>`;
       });
     }
 
     async function loadDashboard() {
       if (!currentUser) return;
-      const today = getKolkataYMD();
+      const today = getKolkataYMD(), cm = today.substring(0, 7), lastDay = new Date(parseInt(cm.split('-')[0]), parseInt(cm.split('-')[1]), 0).getDate();
+      const { data: history } = await sbClient.from('attendance').select('*').eq('punching_id', currentUser.punching_id).gte('date', `${cm}-01`).lte('date', `${cm}-${lastDay}`).order('date', { ascending: false });
       
-      const currentYearMonth = today.substring(0, 7);
-      const [yearStr, monthStr] = currentYearMonth.split('-');
-      const lastDay = new Date(parseInt(yearStr), parseInt(monthStr), 0).getDate();
+      let totalPresent = 0, totalAbsent = 0, totalOT = 0, totalNight = 0, salaryDays = 0;
+      if (history) { history.forEach(r => { if (r.status === 'Absent') totalAbsent++; else { totalPresent++; salaryDays++; } totalOT += parseFloat(r.overtime_hours || 0); if (r.is_night_duty && (r.status === 'Present' || parseFloat(r.overtime_hours || 0) > 0)) totalNight++; }); }
       
-      const startDate = `${currentYearMonth}-01`;
-      const endDate = `${currentYearMonth}-${lastDay}`;
-
-      const { data: history } = await sbClient.from('attendance')
-        .select('*')
-        .eq('punching_id', currentUser.punching_id)
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: false });
-
-      let totalPresent = 0, totalAbsent = 0, totalOT = 0, totalNight = 0;
-      let salaryPayableDays = 0;
-
-      if (history && history.length > 0) {
-        history.forEach(row => {
-          if (row.status === 'Absent') {
-            totalAbsent++;
-          } else {
-            totalPresent++;
-            salaryPayableDays++;
-          }
-
-          totalOT += parseFloat(row.overtime_hours || 0);
-          if (row.is_night_duty && (row.status === 'Present' || parseFloat(row.overtime_hours || 0) > 0)) totalNight++;
-        });
-      }
-
       renderAttendanceCards('attendance-cards-dash', history);
-
-      const estimatedSalary = computeEstimatedSalary(salaryPayableDays, totalOT, totalNight, currentYearMonth);
-
-      const daysUnit = currentLang === 'hi' ? ' दिन' : ' Days';
-      const shiftsUnit = currentLang === 'hi' ? ' शिफ्ट' : ' Shifts';
-
-      document.getElementById('stat-present').innerText = `${totalPresent}${daysUnit}`;
-      document.getElementById('stat-ot').innerText = `${totalOT.toFixed(1)} Hrs`;
-      document.getElementById('stat-night').innerText = `${totalNight}${shiftsUnit}`;
-      document.getElementById('stat-absent').innerText = `${totalAbsent}${daysUnit}`;
-      document.getElementById('stat-salary').innerText = `₹${estimatedSalary.toLocaleString('en-IN')}`;
+      document.getElementById('stat-present').innerText = `${totalPresent}${currentLang === 'hi' ? ' दिन' : ' Days'}`; document.getElementById('stat-ot').innerText = `${totalOT.toFixed(1)} Hrs`;
+      document.getElementById('stat-night').innerText = `${totalNight}${currentLang === 'hi' ? ' शिफ्ट' : ' Shifts'}`; document.getElementById('stat-absent').innerText = `${totalAbsent}${currentLang === 'hi' ? ' दिन' : ' Days'}`;
+      document.getElementById('stat-salary').innerText = `₹${computeEstimatedSalary(salaryDays, totalOT, totalNight, cm).toLocaleString('en-IN')}`;
     }
 
     async function loadHistoryData() {
-      if (!currentUser) return;
-      const selectedMonth = document.getElementById('filter-month').value;
-      if (!selectedMonth) return;
-
-      const [yearStr, monthStr] = selectedMonth.split('-');
-      const lastDay = new Date(parseInt(yearStr), parseInt(monthStr), 0).getDate();
+      if (!currentUser) return; const selectedMonth = document.getElementById('filter-month').value; if (!selectedMonth) return;
+      const lastDay = new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]), 0).getDate();
+      const { data: history } = await sbClient.from('attendance').select('*').eq('punching_id', currentUser.punching_id).gte('date', `${selectedMonth}-01`).lte('date', `${selectedMonth}-${lastDay}`).order('date', { ascending: false });
       
-      const startDate = `${selectedMonth}-01`;
-      const endDate = `${selectedMonth}-${lastDay}`;
-
-      const { data: history } = await sbClient.from('attendance')
-        .select('*')
-        .eq('punching_id', currentUser.punching_id)
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: false });
-
-      let totalPresent = 0, totalAbsent = 0, totalOT = 0, totalNight = 0;
-      let salaryPayableDays = 0;
-
-      if (history && history.length > 0) {
-        history.forEach(row => {
-          if (row.status === 'Absent') {
-            totalAbsent++;
-          } else {
-            totalPresent++;
-            salaryPayableDays++;
-          }
-
-          totalOT += parseFloat(row.overtime_hours || 0);
-          if (row.is_night_duty && (row.status === 'Present' || parseFloat(row.overtime_hours || 0) > 0)) totalNight++;
-        });
-      }
-
+      let totalPresent = 0, totalAbsent = 0, totalOT = 0, totalNight = 0, salaryDays = 0;
+      if (history) { history.forEach(r => { if (r.status === 'Absent') totalAbsent++; else { totalPresent++; salaryDays++; } totalOT += parseFloat(r.overtime_hours || 0); if (r.is_night_duty && (r.status === 'Present' || parseFloat(r.overtime_hours || 0) > 0)) totalNight++; }); }
+      
       renderAttendanceCards('attendance-cards-hist', history);
+      document.getElementById('hist-present').innerText = `${totalPresent}${currentLang === 'hi' ? ' दिन' : ' Days'}`; document.getElementById('hist-ot').innerText = `${totalOT.toFixed(1)} Hrs`;
+      document.getElementById('hist-night').innerText = `${totalNight}${currentLang === 'hi' ? ' शिफ्ट' : ' Shifts'}`; document.getElementById('hist-absent').innerText = `${totalAbsent}${currentLang === 'hi' ? ' दिन' : ' Days'}`;
+      document.getElementById('hist-salary').innerText = `₹${computeEstimatedSalary(salaryDays, totalOT, totalNight, selectedMonth).toLocaleString('en-IN')}`;
+    }
 
-      const estimatedSalary = computeEstimatedSalary(salaryPayableDays, totalOT, totalNight, selectedMonth);
-
-      const daysUnit = currentLang === 'hi' ? ' दिन' : ' Days';
-      const shiftsUnit = currentLang === 'hi' ? ' शिफ्ट' : ' Shifts';
-
-      document.getElementById('hist-present').innerText = `${totalPresent}${daysUnit}`;
-      document.getElementById('hist-ot').innerText = `${totalOT.toFixed(1)} Hrs`;
-      document.getElementById('hist-night').innerText = `${totalNight}${shiftsUnit}`;
-      document.getElementById('hist-absent').innerText = `${totalAbsent}${daysUnit}`;
-      document.getElementById('hist-salary').innerText = `₹${estimatedSalary.toLocaleString('en-IN')}`;
+    async function loadReferralData() {
+      if (!currentUser) return;
+      const { data: referredUsers } = await sbClient.from('users').select('name, punching_id, mobile').eq('refer_code', currentUser.punching_id);
+      const listContainer = document.getElementById('referred-users-list'); listContainer.innerHTML = ''; let count = 0;
+      if (referredUsers && referredUsers.length > 0) {
+        count = referredUsers.length;
+        referredUsers.forEach(u => {
+          let m = String(u.mobile || '').replace(/\D/g, ''); if (m.length === 10) m = '91' + m;
+          listContainer.innerHTML += `<div class="attendance-card-item"><div class="att-card-header"><div class="att-card-date"><i class="fa-solid fa-user"></i> ${u.name}</div><div class="status-badges-group"><a href="https://wa.me/${m}?text=${encodeURIComponent(`Hello ${u.name}, welcome to Attendance Pro!`)}" target="_blank" style="background:#25d366;color:white;padding:3px 8px;border-radius:6px;font-size:0.7rem;text-decoration:none;font-weight:700;"><i class="fa-brands fa-whatsapp"></i> Chat</a></div></div><div class="att-card-body" style="font-size:0.75rem;"><div>ID: <span>${u.punching_id}</span></div><div>Mob: <span>${u.mobile}</span></div></div></div>`;
+        });
+      } else { listContainer.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 12px; background:#f8fafc; border-radius:10px; border:1px solid var(--border); font-size:0.75rem;">No referrals yet. Share your link!</div>`; }
+      document.getElementById('ref-total-rewards').innerText = `₹${count * 5}`;
     }
 
     async function downloadPDF(type = 'dashboard') {
       const selectedMonth = type === 'history' ? document.getElementById('filter-month').value : getKolkataYMD().substring(0, 7);
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.setFontSize(16);
-      doc.text(`Attendance Report (${selectedMonth})`, 14, 15);
-      doc.setFontSize(11);
+      const doc = new window.jspdf.jsPDF(); doc.setFontSize(16); doc.text(`Attendance Report (${selectedMonth})`, 14, 15); doc.setFontSize(11);
       doc.text(`Employee Name: ${currentUser.name}`, 14, 22);
-      if (currentUser.company_name) {
-        doc.text(`Company: ${currentUser.company_name}`, 14, 28);
-        doc.text(`Punching ID: ${currentUser.punching_id}`, 14, 34);
-      } else {
-        doc.text(`Punching ID: ${currentUser.punching_id}`, 14, 28);
-      }
-
-      const [yearStr, monthStr] = selectedMonth.split('-');
-      const lastDay = new Date(parseInt(yearStr), parseInt(monthStr), 0).getDate();
+      if (currentUser.company_name) { doc.text(`Company: ${currentUser.company_name}`, 14, 28); doc.text(`Punching ID: ${currentUser.punching_id}`, 14, 34); } 
+      else { doc.text(`Punching ID: ${currentUser.punching_id}`, 14, 28); }
       
-      const startDate = `${selectedMonth}-01`;
-      const endDate = `${selectedMonth}-${lastDay}`;
-      
-      doc.text(`Report Period: ${startDate} to ${endDate}`, 14, 40);
-      
-      const { data: history } = await sbClient.from('attendance')
-        .select('*')
-        .eq('punching_id', currentUser.punching_id)
-        .gte('date', startDate)
-        .lte('date', endDate)
-        .order('date', { ascending: false });
+      const lastDay = new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]), 0).getDate();
+      doc.text(`Report Period: ${selectedMonth}-01 to ${selectedMonth}-${lastDay}`, 14, 40);
+      const { data: history } = await sbClient.from('attendance').select('*').eq('punching_id', currentUser.punching_id).gte('date', `${selectedMonth}-01`).lte('date', `${selectedMonth}-${lastDay}`).order('date', { ascending: false });
 
       if (history && history.length > 0) {
-        const tableData = history.map(row => [
-          formatDateDDMMYYYY(row.date),
-          row.status,
-          row.is_night_duty ? 'Night' : 'Day',
-          row.overtime_hours,
-          row.remark || '-'
-        ]);
-        doc.autoTable({
-          startY: 45,
-          head: [['Date', 'Status', 'Shift', 'OT (Hrs)', 'Remark']],
-          body: tableData,
-        });
-      } else {
-        doc.text("No attendance records found for this period.", 14, 50);
-      }
-      
+        doc.autoTable({ startY: 45, head: [['Date', 'Status', 'Shift', 'OT (Hrs)', 'Remark']], body: history.map(r => [formatDateDDMMYYYY(r.date), r.status, r.is_night_duty ? 'Night' : 'Day', r.overtime_hours, r.remark || '-']) });
+      } else { doc.text("No attendance records found.", 14, 50); }
       doc.save(`Attendance_${currentUser.punching_id}_${selectedMonth}.pdf`);
     }
   </script>
